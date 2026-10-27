@@ -1,6 +1,6 @@
 # Текущее состояние CombatHUD
 
-- Принятая версия `0.1.0`, публичного упакованного релиза нет. Production Lua и VERSION не менялись. Согласованное следующее поведение — [REQUIREMENTS.md](REQUIREMENTS.md), включая HP + все три предмета 1/2/3 при неполном HP и adopted sampled delta.
+- Принятая версия `0.1.0`, публичного упакованного релиза нет. Новая автоматическая логика оформляется кандидатом `0.2.0`; она ещё не принята в игре. Согласованное следующее поведение — [REQUIREMENTS.md](REQUIREMENTS.md), включая HP + все три предмета 1/2/3 при неполном HP и adopted sampled delta.
 - **HP binding — PASS:** GameGlobal CDO GetHP/GetMaxHP на проверенном owning hilda_BP_C, floats/Lua numbers, цикл680→532.074→680 и точное достижение max уже подтверждены. Повторное исследование не нужно.
 - **Item ownership — PASS:** QuickItem0/1/2 (`HUDItemSlotUMG_BP_C`, SlotIndex0/1/2) имеют общий QuickItem_Panel. В каждом MainPanel четыре Image (BG_Image, Icon_Image, ValueBg_Image, Key_Image) и TextBlock Value_Text; reflected aliases совпали по адресам. Показанное FName BG_Image отличается от Lua field Bg_Image — сравнивать identity, не spelling.
 - **Раздельная opacity в наблюдённом layout — PASS:** восемь HP-слоёв и QuickItem_Panel остаются яркими, другие status groups и правая панель приглушаются; active alternative crystal group получает0.20. Пользователь подтвердил ожидаемый внешний вид всех групп. Содержимое предметов не анализируется, внутренние brushes/Visibility не переписываются.

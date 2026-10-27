@@ -262,7 +262,7 @@ local function update()
     end
 end
 
-log("Loaded HP-aware candidate; 0.20 idle, 1.5s hold, 1.0s fade, 50ms HP sampling")
+log("Loaded CombatHUD 0.2.0 HP-aware candidate; 0.20 idle, 1.5s hold, 1.0s fade, 50ms HP sampling")
 LoopAsync(50, function()
     if disabled then return true end
     if pending then return false end
