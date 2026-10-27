@@ -9,3 +9,7 @@
 - **Cleanup завершён:** после пользовательского закрытия игры отдельный `CombatHUDHPProbe` удалён. Production CombatHUD, SoulsEnemyHUD, VERSION и mods.txt сверены с pre-install identity и не менялись. Исследовательские source и raw evidence сохранены отдельно. Игра запускалась/закрывалась только пользователем, hot reload не применялся.
 - Доказательства ограничены этим билдом и одной игровой сессией: новый production fallback, playable pawn replacement/respawn, max changes, pause, производительность и визуальная корректность новой функции не проверены. Повторять уже установленный HP/HUD lookup без нового основания не нужно.
 - Работа остаётся в `research/combathud-hp-visibility`, изолированном worktree. Переноса в main AsterigosMods, новой версии мода и production-изменений нет. Обычный ChatGPT получает точный отчёт через GitHub.
+
+## Текущий шаг: визуальный эксперимент подготовлен
+
+Отдельный `research/opacity-experiment-01` проверяет HP + три предмета против приглушённых соседей ручными split/full режимами и полным rollback. Новое статическое item ownership установлено; live bind/labels/rendering ещё ожидаются. Перед запуском принятый CombatHUD временно отключается только в loader list, чтобы исключить двух writers; его source/installed payload и VERSION не меняются. Восстановление списка и payload hashes обязательно после закрытия игры. Процедура и границы — в README эксперимента. Визуальной приёмки или production readiness эта подготовка не означает.
