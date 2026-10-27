@@ -1,0 +1,125 @@
+{
+  "originalRepository": "NikichMods/AsterigosMods",
+  "originalCommit": "f65d5e58d6f02b2559f5131912cfdfc9aec71dbd",
+  "originalPrefix": "CombatHUD/",
+  "extractedCommit": "8b3b670dda88a336db0d34d4389592ec2c52bf67",
+  "extractedTree": "1f8543bf90bf8f05452587bf1d235264209fd13f",
+  "branch": "feature/combathud-hp-visibility",
+  "files": {
+    "AGENTS.md": {
+      "original_path": "CombatHUD/AGENTS.md",
+      "original_blob": "c57f330c8486230a487b6ade6c3e19644a9783ee",
+      "sha256": "4f53f4085e87d86afa7541f580adf7d82542df074d2c709afb4b92eba350110d"
+    },
+    "CHANGELOG.md": {
+      "original_path": "CombatHUD/CHANGELOG.md",
+      "original_blob": "7990b7c9fa673de7188b9c179e9d07848a142ce5",
+      "sha256": "968b3a33ef49c6562229dcbd8d5282a099976ef0a6ac347d884ab5958f5ec1bd"
+    },
+    "LICENSE-NOTICE": {
+      "original_path": "CombatHUD/LICENSE-NOTICE",
+      "original_blob": "339c645985ab351372ffe71e956e22f46bbde645",
+      "sha256": "92b915ba613977889d175ff08765381c5509dfa8f4dd4d15a68e3fe1b9c9f808"
+    },
+    "README.md": {
+      "original_path": "CombatHUD/README.md",
+      "original_blob": "697af6f479024b0cd64a11010c30b767d59918a1",
+      "sha256": "2e89d52b963dea296069588c705bb26551f6d87ac971a5027a13c01bda6cb5f8"
+    },
+    "Scripts/main.lua": {
+      "original_path": "CombatHUD/Scripts/main.lua",
+      "original_blob": "d1aa9fac55d8cc75e6367646d5734346feea21a2",
+      "sha256": "3ef86bcb7f6641be6332f003e0cf5dcbf443dd3a0f2ebb747c08be4691601d88"
+    },
+    "Scripts/policy.lua": {
+      "original_path": "CombatHUD/Scripts/policy.lua",
+      "original_blob": "ace7d6d059368265e5b2f02c4329ff7d0ad35da4",
+      "sha256": "d2725a52b181adc440660b01a4dbd642a17f128ae71a0135cbbf5f530af2f669"
+    },
+    "VERSION": {
+      "original_path": "CombatHUD/VERSION",
+      "original_blob": "0ea3a944b399d25f7e1b8fe684d754eb8da9fe7f",
+      "sha256": "1f930dd1f133c1f97a94fe3acb8db34372cf4c01ffdb2b3ff4ca72f9494121e9"
+    },
+    "docs/CANDIDATE-0.2.0.md": {
+      "original_path": "CombatHUD/docs/CANDIDATE-0.2.0.md",
+      "original_blob": "8f89a3bac7d8e1d77f7ef789a136871fe14a77af",
+      "sha256": "d30b87924a7258ca111bf59ec3be631e03b0dc0ae358adea6fa7278369dd474a"
+    },
+    "docs/REQUIREMENTS.md": {
+      "original_path": "CombatHUD/docs/REQUIREMENTS.md",
+      "original_blob": "0efd17c049f7df1c243fd95936c321bf9a77a603",
+      "sha256": "686b02498c38d82a05b2f03c39b3ab08947c36afd33dc9435f50c0d4d66b338f"
+    },
+    "docs/STATUS.md": {
+      "original_path": "CombatHUD/docs/STATUS.md",
+      "original_blob": "c5e9e70bca6138208851baa54f3467cf526f9e25",
+      "sha256": "77bd3f4c23444eb92ce721028a3c0ed1bcffbaf90ae18222e85ef5876bb0277b"
+    },
+    "docs/VERIFIED_RUNTIME.md": {
+      "original_path": "CombatHUD/docs/VERIFIED_RUNTIME.md",
+      "original_blob": "eb37517127090d44b32bbaeb4a14edb7a730c4b1",
+      "sha256": "fb72e2d4b99c8a32a5573b0af529074b04c307444c660511b93b75ca3c447751"
+    },
+    "research/hp-readonly-probe-02/README.md": {
+      "original_path": "CombatHUD/research/hp-readonly-probe-02/README.md",
+      "original_blob": "196b1b2eddd79566029f2580a7c9769b0ba6890c",
+      "sha256": "34a2b3d73a9641bdd2364f2c06524f453c55ef3a512624b85881be7b173be7c2"
+    },
+    "research/hp-readonly-probe-02/main.lua": {
+      "original_path": "CombatHUD/research/hp-readonly-probe-02/main.lua",
+      "original_blob": "62870e49fbc2e16394523a1791ed6b3ff7535af9",
+      "sha256": "a4407110e1aeb95f12ba04cf906d860228b149401aafbfbfcebb1db9d0381ab6"
+    },
+    "research/hp-readonly-probe/README.md": {
+      "original_path": "CombatHUD/research/hp-readonly-probe/README.md",
+      "original_blob": "5947ffc31651237e86532f5330ea1287f361ea32",
+      "sha256": "a6d9b9f3f9fa880adab22a4fadb0f7e59c3d73d18dc02f34f46733a97c0f42db"
+    },
+    "research/hp-readonly-probe/main.lua": {
+      "original_path": "CombatHUD/research/hp-readonly-probe/main.lua",
+      "original_blob": "272fad1ac0cd423b5e96bd83294b671169225ace",
+      "sha256": "a0463e067688d86a0c36d663bd57cb633b8f865da5ea1142cb95451b1d0466ae"
+    },
+    "research/opacity-experiment-01/README.md": {
+      "original_path": "CombatHUD/research/opacity-experiment-01/README.md",
+      "original_blob": "f1ec2842f600aafcc80919ca64b78044597715f9",
+      "sha256": "d53c11b0be21e5c764c0b625414fa38e2f8a126c1377ff49443aead880e64fd4"
+    },
+    "research/opacity-experiment-01/main.lua": {
+      "original_path": "CombatHUD/research/opacity-experiment-01/main.lua",
+      "original_blob": "31443e1a1cc1a135ee6b2876941cac0b02d13a46",
+      "sha256": "eff54561ed5fe37e0e127cd2baffb0cda3147ce63e685d0e3037a262e5e9da49"
+    },
+    "research/opacity-experiment-01/test_harness.py": {
+      "original_path": "CombatHUD/research/opacity-experiment-01/test_harness.py",
+      "original_blob": "907e81e438bf1b1478659e88cd575084579f347f",
+      "sha256": "fbccaa3a3b2ef71d38f8e660cd656d37b0a8903c91f5964140710669af0f6120"
+    },
+    "research/opacity-experiment-02/README.md": {
+      "original_path": "CombatHUD/research/opacity-experiment-02/README.md",
+      "original_blob": "6651a7c15e7b15f4753917c71677cdf5c1399e6a",
+      "sha256": "06627a8ec2b3c20b8d843daf070f298538ce26f809c12d48d72f855542d65df6"
+    },
+    "research/opacity-experiment-02/main.lua": {
+      "original_path": "CombatHUD/research/opacity-experiment-02/main.lua",
+      "original_blob": "7c604bb3f80428f69bcac4bbb3cbf89f9702400c",
+      "sha256": "aeaf1caf747c08358d70fbd93b93bc3b03064590322361a60f80e1469f3c0a2a"
+    },
+    "research/opacity-experiment-02/test_harness.py": {
+      "original_path": "CombatHUD/research/opacity-experiment-02/test_harness.py",
+      "original_blob": "4a13d13d49529774702f63f40e87645029be0c45",
+      "sha256": "8fd20a06f796d76a2f7534293251e2b3d1f6704917494873c3f95611fcdd5279"
+    },
+    "tests/test_adapter.py": {
+      "original_path": "CombatHUD/tests/test_adapter.py",
+      "original_blob": "a6dda679e2b3c3efb1466f2ccf0a9fee73303b23",
+      "sha256": "07c70d7d514de90a0bc47edb3d6f67a3db96bfef3822fd1f3511d8a939132362"
+    },
+    "tests/test_policy.py": {
+      "original_path": "CombatHUD/tests/test_policy.py",
+      "original_blob": "2d652e6b9614e62359827f8863240894b3691e90",
+      "sha256": "a2107ce91b8e7052ab62e804a1a76d734545f9881cccd0036208be737db662fd"
+    }
+  }
+}
