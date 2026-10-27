@@ -1,6 +1,6 @@
 # CombatHUD 0.2.0 — runtime candidate
 
-Status: installed 2026-10-27; user runtime acceptance pending. Not stable; no main merge or release.
+Status: installed and user runtime test PASS on 2026-10-27 for damage, healing, combat and menus. Stable promotion is not authorized; no main merge or release.
 
 - Branch: `feature/combathud-hp-visibility`.
 - Exact payload source commit: `ca342e33442a11b46a9ab30ed8e8cd796c9a8d60`.
@@ -26,4 +26,22 @@ Local immutable candidate payload, source archive, manifest, test output, pre-te
 
 User test: full HP idle 20%; combat reveal over 1s; combat exit hold 1.5s then fade 1s; detected damage immediately reveals all groups (nominal 50ms sampling); partial HP keeps HP + all three quick items bright while other groups fade independently; healing to full starts only HP/item hold; repeated damage resets the relevant delay; native menus/dialogue hiding, pause and transitions remain correct. Crystals/input-mode visibility intentionally deferred until natural unlock; do not alter saves or force unlocks.
 
-Next: after the user's run, snapshot the new UE4SS log before restart, verify installed hashes and the 0.2.0 startup marker, correlate state/containment lines with user observations. Record only supported findings, retain unresolved cases and synchronize the feature branch. No runtime result or acceptance is recorded yet.
+The completed user test and matching session evidence are recorded below. Remaining action: synchronize the feature branch; any stable promotion requires separate user authorization.
+
+## Runtime result — 2026-10-27, 23:20–23:24 MSK
+
+**PASS in the exercised scope.** The user reported that damage, healing, combat and menus all behaved as expected, then closed the game. Stable promotion remains separately unauthorized; main and releases are unchanged.
+
+The new UE4SS log identifies v3.0.1 / Git 83330635, starts CombatHUD 0.2.0 at 23:20:42.063 and ends with `Event loop end` at 23:24:21.438. Post-session process count is zero. Both installed Lua SHA-256 values still match the frozen candidate above. One binding validated hilda_BP_C and all 17 independent targets. The preserved local session snapshot is `run-20261027-232421-UE4SS.log`, SHA-256 `8511ab2ad9323b89a64659a5575dbafdc4c60ae7ff1af3122c40039362df6753`.
+
+Direct log evidence (ordinary/vital = other HUD / HP + quick items):
+
+- At full HP 680/680, combat reveal at 23:21:29.265 reaches 1/1 at 23:21:30.282 (~1.02s wall time). Exit at 23:21:40.414 enters hold, fading starts at 23:21:41.948 (~1.53s), idle 0.2/0.2 at 23:21:42.948 (~1.00s fade).
+- Damage in combat records HP 626/680. After exit, other HUD fades to 0.2 while vital stays 1.0 (23:22:04.630). A later combat entry reveals only the already-dim group; vital remains bright.
+- Damage outside combat at 23:22:56.930 records HP 452.278/680, damage=true and opacity 1/1 in that update. At 23:22:59.447, ordinary/vital is 0.2/1.0. Another outside-combat loss to 527.293/680 at 23:23:15.046 again records damage=true and immediate 1/1, followed by 0.2/1.0 at 23:23:17.579. The log records sampled detection, not the physical instant/source of damage.
+- Full recovery at 23:23:05.613 records 680/680 and idle/hold, opacity 0.2/1.0. Vital fading begins at 23:23:07.163 (~1.55s); idle/idle reaches 0.2/0.2 at 23:23:08.130. Ordinary remains dim throughout healing: its timer was not restarted.
+- No CombatHUD fail-safe disable, scheduler failure, restoration warning or native opacity conflict is recorded. UE4SS startup also contains ConsoleManagerSingleton signature and FObjectPtrProperty exposure warnings; no causal connection to a CombatHUD failure is established, and this session continued through all observed transitions.
+
+Visual correctness and native menu hiding are confirmed by the user, not independently measured by detailed menu telemetry in this production log. Exact sub-frame latency, every menu/dialogue, pause/resume, respawn/HUD replacement and partial-HP initial load are not individually established by this short session. Existing offline coverage and historical research remain separate evidence. Visible crystals and keyboard/gamepad switching remain intentionally deferred until natural unlock.
+
+The payload is unchanged; previous accepted 0.1.0 rollback remains preserved. Runtime test is complete for the user's exercised scope. Feature-branch synchronization records this result without main merge, release or removal of rollback.
