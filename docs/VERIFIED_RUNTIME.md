@@ -1,17 +1,17 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-## Production candidate 0.2.0 — runtime PASS, 2026-10-27
+## Принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
-Пользователь подтвердил ожидаемое поведение урона, лечения, боя и меню. Лог UE4SS с маркером 0.2.0 и совпавшие installed hashes подтверждают точный кандидат ca342e33442a11b46a9ab30ed8e8cd796c9a8d60. Записаны внебоевой damage reveal 1/1, независимый idle 0.2/1 и full-heal hold при уже приглушённой ordinary-группе; ошибок CombatHUD нет. Точные события, log SHA-256 и пределы доказательств — [CANDIDATE-0.2.0.md](CANDIDATE-0.2.0.md#runtime-result--2026-10-27-23202324-msk). Чаровиты/input switching остаются отложены; все экраны и lifecycle-сценарии не объявляются проверенными. Stable promotion не выполнялось. Далее сохранены исторические исследовательские gate и результаты; их формулировки о ещё не реализованной automatic policy относятся к тому этапу.
+Пользователь подтвердил ожидаемое поведение урона, лечения, боя и меню. Лог UE4SS с маркером 0.2.0 и совпавшие installed hashes подтверждают точный кандидат ca342e33442a11b46a9ab30ed8e8cd796c9a8d60. Записаны внебоевой damage reveal 1/1, независимый idle 0.2/1 и full-heal hold при уже приглушённой ordinary-группе; ошибок CombatHUD нет. Точные события, log SHA-256 и пределы доказательств — [CANDIDATE-0.2.0.md](CANDIDATE-0.2.0.md). Чаровиты/input switching остаются отложены; все экраны и lifecycle-сценарии не объявляются проверенными. Пользователь отдельно принял 0.2.0 для main и стабильного выпуска; payload не меняется. Откат 0.1.0 сохранён. Далее сохранены исторические исследовательские gate и результаты; их формулировки о ещё не реализованной automatic policy относятся к тому этапу.
 
-## Актуальный результат: HP/items opacity и меню проверены, 2026-10-27
+## История исследования: HP/items opacity и меню, 2026-10-27
 
 HP и три QuickItem0/1/2 доступны как независимая яркая группа; наблюдённый split/full визуально соответствует ожиданию пользователя. Native меню сохраняют управление общим HUD_Panel, а отдельные цели не перезаписывались в sampled monitoring. В финальной сессии 5848 сравнений без конфликтов, прямой split→cleanup восстановил все 17 целей. Эксперимент удалён при закрытой игре; loader list восстановлен побайтно, production Lua/VERSION не менялись.
 
 **Визуальный gate наблюдённого layout/меню — PASS.** Не объявлять универсальную production readiness: видимый keyboard CrystalList_Panel/F1-F2-F3 и input-layout switching не упражнялись (ветка нативно скрыта alpha0/Visibility2); автоматическая HP/combat/timer policy и её lifecycle acceptance не реализованы этим экспериментом. Следующий этап — разрешить эту границу при выборе production targets, затем отдельно реализовывать и проверять согласованную policy. Не повторять закрытые HP getters, QuickItem ownership или menu-parent проверки без нового основания.
 
 Последующие разделы сохраняют историю доказательств. Их прежние HP-binding, item-binding, active-menu и rollback пробелы обновлены итоговыми сессиями в конце; исторические READY/BLOCKED относятся к своим этапам, а не переопределяют текущие ограничения.
-## Принятая runtime-база
+## Историческая runtime-база 0.1.0
 
 `GameGlobal:GetIsBattleState` (`/Script/Genesis`), CDO `Default__GameGlobal`, принимает `GenesisCharacter` из `hud:GetOwningPlayerPawn()`. Ранние попытки без аргумента или с виджетом были неверны. Принятые цели: `LeftBottom_Panel`, `HUDSkillUMG_BP`, `HUDActiveSkillUMG_BP`; обращения к Unreal только в game thread, ограниченный поиск и обработка невалидных объектов. `UEHelpers` — внешняя зависимость.
 

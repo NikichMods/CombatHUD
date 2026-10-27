@@ -1,5 +1,8 @@
 # HP read-only probe
 
+> Historical research artifact, completed before CombatHUD 0.2.0 acceptance. Do not install or rerun as a current task; see ../../docs/STATUS.md for current scope and evidence.
+
+
 Research-only companion to the unchanged CombatHUD 0.1.0. No mod version or production payload change.
 
 ## Method and stop condition

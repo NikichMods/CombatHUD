@@ -1,5 +1,8 @@
 # CombatHUD opacity experiment 01
 
+> Historical research artifact, completed before CombatHUD 0.2.0 acceptance. Do not install or rerun as a current task; see ../../docs/STATUS.md for current scope and evidence.
+
+
 Research identity `combathud-opacity-01`; no production Lua or mod VERSION changes. Starting decision baseline: `e0cd8ddc77147b95341296c13ffb7c83d466eea6`.
 
 ## Question and minimum method

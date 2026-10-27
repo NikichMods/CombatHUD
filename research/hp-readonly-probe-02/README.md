@@ -1,5 +1,8 @@
 # HP read-only probe — attempt 02
 
+> Historical research artifact, completed before CombatHUD 0.2.0 acceptance. Do not install or rerun as a current task; see ../../docs/STATUS.md for current scope and evidence.
+
+
 Same read-only scope, bounds, observation matrix and cleanup as [attempt 01](../hp-readonly-probe/README.md). Identity `combathud-hp-readonly-02`; no mod VERSION change. Attempt 01 source and its installed bytes are frozen.
 
 The first runtime session confirmed both reflected signatures and the GameGlobal CDO, but stopped with zero HP samples when the early viewport HUD returned a pawn outside the verified GenesisCharacter ancestry. Accepted CombatHUD validated hilda_BP_C about 10 seconds later. Attempt 02 treats missing/wrong-type owning pawn as an unavailable sample, matching the production adapter; it reacquires HUD no faster than once per second. Multiple in-viewport HUDs also defer discovery rather than invoking a guessed owner. No guessed fallback pawn is used. Unexpected getter signatures/data and actual hierarchy contract errors still stop the observer.

@@ -1,5 +1,8 @@
 # Opacity experiment 02 — item content binding correction
 
+> Historical research artifact, completed before CombatHUD 0.2.0 acceptance. Do not install or rerun as a current task; see ../../docs/STATUS.md for current scope and evidence.
+
+
 Same visual modes, one-writer installation, bounded monitoring and cleanup as [attempt 01](../opacity-experiment-01/README.md). Identity `combathud-opacity-02`; no mod VERSION change. First source/installed bytes and raw session are frozen.
 
 Attempt 01 reached QuickItem0 and its content panel, but rejected a redundant internal reflected-field vs child-name lookup before READY or any opacity write. The first log does not identify the failing alias or actual child spelling; do not assert an established FName/casing root cause. It records no MODE/WRITE and rollback restored zero targets. This is a probe binding failure, not a failed RenderOpacity mechanism or evidence that the key API is broken.
