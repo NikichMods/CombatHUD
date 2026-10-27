@@ -1,7 +1,164 @@
-# Verified runtime — Steam1.09/build12996889
+# Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-GameGlobal:GetIsBattleState (/Script/Genesis), CDO Default__GameGlobal, requires GenesisCharacter argument obtained from owning player pawn. Earlier zero-arg/widget attempts were wrong. Targets LeftBottom_Panel, HUDSkillUMG_BP, HUDActiveSkillUMG_BP; game-thread-only operations, bounded discovery and invalid-object handling. UEHelpers is an external runtime dependency.
+## Принятая runtime-база
 
+`GameGlobal:GetIsBattleState` (`/Script/Genesis`), CDO `Default__GameGlobal`, принимает `GenesisCharacter` из `hud:GetOwningPlayerPawn()`. Ранние попытки без аргумента или с виджетом были неверны. Принятые цели: `LeftBottom_Panel`, `HUDSkillUMG_BP`, `HUDActiveSkillUMG_BP`; обращения к Unreal только в game thread, ограниченный поиск и обработка невалидных объектов. `UEHelpers` — внешняя зависимость.
 
+Поведение 0.1.0 принято пользователем 25.10.2026: вне боя 0.20, задержка 1.5 с, переходы по 1.0 с. В текущем `policy.lua` вход в бой тоже плавный; требование немедленного показа **при потере HP** нельзя реализовать одним включением существующей ветки `battle=true`: она оставит секундный переход. Новых runtime-результатов ниже нет.
 
-Historical raw evidence remains in the ignored root .local/evidence archive. Do not copy proprietary dumps into this folder.
+## Узкое исследование HP, 2026-10-27
+
+### Область, восстановление и доказательства
+
+Задача: определить источник current/max HP и разделить HP-полоску с остальным управляемым HUD для [согласованных требований](REQUIREMENTS.md). Это исследование, без production-правок, изменения VERSION, сборок, установки, hot reload, запуска или завершения игры.
+
+Исследовательская база: `6c01236dd9fdde6b4548d646d9af1587f92d721d`, ветка `research/combathud-hp-visibility`. Основной checkout на момент начала был чистым, но принадлежал `feature/boss-aphes-name` (`c85b3525a351fe00fd992a975665b9dbd7c185cb`); работа изолирована отдельным worktree. Новые требования присутствуют в исследовательской базе, отсутствовали в старом checkout. Актуальные DevRules прочитаны с `origin/main`, `a0c12f7ee7671a225465e73efb99ae6965e38b7f`, включая `User-mediated research handoff from ChatGPT`.
+
+Публичный `NikichMods/Asterigos-Research` уже инициализирован: прямая проверка refs показывает `main=1f1407d38c09324c793e7d14749fe2e5e6f04677` (`docs: establish Asterigos shared research knowledge base`). GitHub connector metadata по-прежнему возвращала size=0; это не доказательство пустого репозитория. Прочитаны его контракт и технический раздел `docs/MODDING_EVIDENCE.md`: там прямо отмечено отсутствие подтверждённых игровых объектов/хуков, а HP final writer остаётся открытым вопросом. Дополнительного готового HP/HUD API этот источник не дал. Старые корневые записи «отдельного репозитория нет» и исходная предпосылка «он пуст» устарели. Его наполнение не входит в задачу; выводы CombatHUD принадлежат этому документу.
+
+Использованы прежние `hud-auto-hide-audit/Findings.md`, JSON виджетов и `script-objects.txt`; ранее полученный bytecode `NormalHUDBP`; действующий Lua и архив принятой версии. Старое исследование по заполненности ресурсов содержало иной UX и не является текущим требованием.
+
+Для вопроса о финальном writer дополнительно прочитаны bytecode нужных HUD Blueprint и `hilda_BP` из установленного контейнера существующим CUE4Parse reader 1.2.2 (`ReadScriptData=true`, `GAME_UE4_27`). Новый probe/reader не писался. Дампы, ключи, инструменты и машинные пути остались локально под ignored `.local` и в историческом архиве. SHA JSON зависит от режима экспорта; старые и новые JSON нельзя считать одинаковыми только по имени.
+
+Steam manifest непосредственно сообщает buildid `12996889`. Контрольные SHA256 входов:
+
+| Вход | SHA256 |
+| --- | --- |
+| `Genesis-Win64-Shipping.exe` | `ddea6b5ca5d34836f01702993d20209c2595367287e6cd5a135a7ace1958b1c0` |
+| `pakchunk0-WindowsNoEditor.utoc` | `0e9d27f84b97f24651ae1ca0ed38facad171e620702cab08198b14b56e52513e` |
+| `NormalHUDBP--BloodHeavyUpdate.bytecode.json` (существующая выгрузка) | `9235d4d012ff443c3364f694ee4b8f464037665e44f90bae148ef13c0f1242c3` |
+| `HUDMainUMG_BP.json` (новый экспорт с bytecode) | `6c26eb0e427490bf9e55b2d27d2bb81d5bc2dbb1353c2a9645585c99d1f3aeaa` |
+| `HUDStatusBarUMG_BP.json` (новый экспорт с bytecode) | `a9031c8e824c3cf3c584a7c432da355639fac989b6d20b02569cb5f453cd174e` |
+| `HUDProgressBarUMG_BP.json` (новый экспорт с bytecode) | `ea99468230b3e85adfd2e705ef2248cc6a5e6e3498e8457043f5d51cb472fba7` |
+| `hilda_BP--ExecuteUbergraph_hilda_BP.bytecode.json` | `b6d56df1d77940724f0422c73d96dd03049f6fd5f5bf7dd6ffea06b72d8bc9f4` |
+
+Этот hash контейнерного индекса не заменяет hash всех игровых данных и не доказывает совместимость с другими сборками. Установленные `CombatHUD/Scripts/main.lua` и `policy.lua` побайтно совпадают с исследовательской базой по SHA256: соответственно `63f4de5a4a59a4dd263a782d46ed194ccf1f89683cabfd45b7ba68445e8e8c30` и `d47eb701863875bfebee249d4514abaf06d004489b4e467a649bb2daea33a095`.
+
+### A. Здоровье: статически установленные API и владелец
+
+Подтверждённый штатный **путь чтения**, а не догадка по имени:
+
+| Точный идентификатор | Подтверждённый контракт |
+| --- | --- |
+| `/Script/Genesis.GameGlobal:GetHP` | Один входной объект `GenesisCharacter`, результат `FloatProperty` (4 байта) |
+| `/Script/Genesis.GameGlobal:GetMaxHP` | Один входной объект `GenesisCharacter`, результат `FloatProperty` (4 байта) |
+| `/Script/Genesis.GenesisCharacter:CharAttrComponent` | Поле персонажа, передаваемое штатным HUD как объект атрибутов; точный native-класс компонента и layout числовых полей здесь не установлены |
+
+Доказательство сигнатур: `/Game/uiresources/NormalHUDBP.NormalHUDBP_C:BloodHeavyUpdate`. На offset 0 штатно вызывается `GameGlobal:GetPlayerCharacter`; offset 20 проверяет `IsValid`, offset 49 пропускает невалидного. Offset 83 вызывает `GameGlobal:GetHP` с этим объектом; offset 120 — `GameGlobal:GetMaxHP` с тем же объектом; оба результата записываются в float. `EX_CallMath` подтверждает статический Blueprint-вызов, без дополнительного world/widget аргумента. Это **не** getter без аргументов на pawn. Имена native Parm и FunctionFlags в живой UE4SS reflection ещё не сняты.
+
+В `NormalHUDBP_C:UpdateCharStat`, offset 215, `CoherentUIGTJSEvent:AddObject` получает `GenesisCharacter.CharAttrComponent`. Это подтверждает связь персонаж → объект атрибутов для штатного HUD. Тело C++ getters и точный внутренний final writer HP не исследованы; нельзя утверждать, что getters всегда читают конкретное предположенное поле `.HP`/`.MaxHP` или обходить их угадыванием layout. `script-objects.txt` также содержит `BaseGameObject:GetHP/GetMaxHP` и `BaseCharacterAnimInstance:GetHP`; это другие владельцы, не взаимозаменяемые варианты вызова.
+
+**Рекомендуемый UE4SS-путь, ещё требующий binding-проверки:** тот же CDO/объект `GameGlobal`, который уже используется CombatHUD, и вызовы `global:GetHP(character)`, `global:GetMaxHP(character)` после проверки UFunction. Передавать существующий проверенный `hud:GetOwningPlayerPawn()`, а не искать первый `hilda_BP_C` в мире и не менять принятый источник владельца.
+
+Перед будущим использованием: живой HUD в viewport; валидный owning pawn с цепочкой до `GenesisCharacter`; функции найдены по точному пути и имеют ожидаемые Parm/return/статичность; валидный объект вызова. Результаты — конечные числа, max > 0; невозможное/переходное состояние не трактовать как урон или полное здоровье. Чтение обоих значений в одном game-thread callback; адреса HUD/pawn должны принадлежать текущему поколению. На смене HUD/pawn, пропаже данных и сбросе игрового времени сбрасывать сравнение и таймеры. Первый замер неполного HP должен включать HP-исключение, но не создавать вымышленное событие урона.
+
+Произвольный epsilon, округление до целых и сравнение по проценту полоски не доказаны. Сравнивать именно current HP; изменение max само по себе не равно потере current HP. Если нужен допуск из-за наблюдаемого float-шума, сначала измерить его и проверить, что он не скрывает малый фактический урон.
+
+### B. Обнаружение урона: что найдено и чего это не доказывает
+
+Имена и владельцы из таблицы native script objects:
+
+- `/Script/Genesis.GenesisCharacter:BuffDamageEvent`;
+- `/Script/Genesis.GenesisCharacter:FallEvent` и `FallOverHeightEvent`;
+- `/Script/Genesis.BaseGameScriptObject:EventCharacterDamage`;
+- `/Script/Genesis.BaseGameEventObject:HitEventPhysicCollisionDamage`;
+- `/Script/Genesis.GameGlobal:DamageCharacter_Cpp`;
+- стандартные `/Script/Engine.Actor:ReceiveAnyDamage`, `ReceivePointDamage`, `ReceiveRadialDamage`.
+
+Это **наличие имён**, не доказательство порядка вызовов, UE4SS hookability, покрытия всех источников или уже совершённой потери HP. Нельзя по ним утверждать, что яд/огонь/падение проходят через `ReceiveAnyDamage`, либо что положительный входной Damage равен уменьшению HP после защиты/неуязвимости. `DamageCharacter_Cpp` нельзя вызывать для проверки: это потенциально изменение игры.
+
+Дополнительная статическая проверка `/Game/MainContent/Act/Character_BP/hilda_BP`:
+
+- Blueprint `FallEvent` переопределяет `GenesisCharacter:FallEvent`, единственный входной Parm — float `fallHeight`.
+- Соответствующая ветка ubergraph, offsets 16723–16966, проверяет высоту >= 600 и `GameGlobal:IsAlive`, затем играет `hilda_falling_hurt`. Здесь не читается и не сравнивается HP. Звук/высота падения не являются детектором фактически применённого урона; native падение осталось за границей этого Blueprint.
+- Литерал `OnDamage` на offset 13664 — аргумент `GameObjectExecuteAction` для `Ult_Shd02_VFX`, а не доказанный универсальный HP callback Хильды. Не регистрировать выдуманный `hilda_BP_C:OnDamage` на основании этого литерала.
+
+| Механизм | Покрытие и корректность | Цена и ограничения |
+| --- | --- | --- |
+| Сравнение current HP в существующем 50-мс update | Отрицательная разница у одного pawn не зависит от источника: потенциально удар, падение, DoT, среда. Не реагирует на удар без потери HP | Два getter-вызова на update (номинально около 40/с), без новых world scans. Стоимость не измерялась. Потеря и лечение между замерами могут компенсироваться; несколько потерь сливаются. Задержка до следующего выполненного update; 50 мс не жёсткая верхняя граница при нагрузке |
+| События урона + проверка фактического HP | Потенциально меньшая задержка и видимость отдельных изменений, если событие действительно окружает/следует HP commit | Нужны точные подписи, pre/post-порядок, охват каждого источника и lifecycle cleanup. Событие намерения или анимации не годится само по себе |
+| Единый verified HP-change/commit hook | Лучший кандидат для строгого «любое уменьшение», включая компенсацию лечением между poll | Такой seam пока не установлен; низкоуровневые перехваты/замена расчёта HP не обоснованы |
+| События как ускоритель + редкий/существующий опрос | Можно совместить быстрый показ и проверку загруженного неполного здоровья | Больше движущихся частей; polling fallback не доказывает полноту пропущенных событий |
+
+**Вывод:** sampled delta — самый простой кандидат, независимый от типа урона, но ещё не доказанная реализация всех согласованных требований. Нельзя молча заменить «любое уменьшение немедленно» на «чистое уменьшение раз в 50 мс». Если строгая событийная полнота обязательна, потребуется подтверждённый HP-commit seam; возможное принятие дискретного опроса — отдельное UX-решение пользователя. Боевой флаг, анимация удара, звук, изменение max и сглаженная длина полоски не заменяют фактическую потерю HP.
+
+Новые runtime-наблюдения по ударам, падению, яду, огню и прочим опасностям **не проводились**. Их универсальное покрытие не объявляется проверенным.
+
+### C. Иерархия HUD: статически подтверждено
+
+Пакеты находятся под `/Game/MainContent/Template/UMG/HUD/`. `HUDMainUMG_BP_C` наследует `/Script/Genesis.HUDMainUMG`, `HUDStatusBarUMG_BP_C` — `HUDStatusBarUMG`, `HUDProgressBarUMG_BP_C` — `HUDProgressBarUMG`.
+
+Связи восстановлены по `WidgetTree.RootWidget`, `Slots`, `Parent` и `Content`, а не только по UObject Outer:
+
+```text
+HUDMainUMG_BP_C
+  Main_Panel
+    CurrencyGetUMG_BP
+    HUD_Panel
+      IndicateTip_UMG
+      HUDSkillUMG_BP                 [прежняя правая цель]
+      HUDActiveSkillUMG_BP           [прежняя правая цель]
+      LeftBottom_Panel               [прежняя общая левая цель]
+        HUDUseItemUMG_BP             [быстрые предметы]
+        HUDStatusBarUMG_BP
+          CanvasPanel_0
+            Main_Panel
+              HPDamageBar           [HUDProgressBarUMG_BP_C]
+              HPBar                 [HUDProgressBarUMG_BP_C]
+              WarningBar            [ProgressBar]
+              HPArrow_Image         [Image]
+              HPFrameLine0_Img .. HPFrameLine3_Img [Image]
+              APBar                 [выносливость]
+              ExpBar                [опыт]
+              UnUsePoint_Image      [неиспользованные очки]
+              DamageTipList_Panel
+                TipItem_0           [HUDDamageTip_BP_C]
+```
+
+Порядок списка — логическая группировка, не утверждение о z-order. `hud.HUDStatusBarUMG_BP` и перечисленные HPBar/HPDamageBar/HPArrow/HPFrameLine/WarningBar/APBar/ExpBar/UnUsePoint/TipItem_0 подтверждены как reflected ObjectProperty. Внутренние `Main_Panel`, `CanvasPanel_0` и `DamageTipList_Panel` **не** перечислены среди новых Blueprint ChildProperties: нельзя обещать доступ `status.Main_Panel`/`status.DamageTipList_Panel` как проверенное Lua-поле. Родителя можно исследовать от `status.HPBar:GetParent()`; точное bounded перечисление детей и identity-match необходимо подтвердить в UE4SS. В script objects подтверждены `Widget:GetParent`, `Widget:GetRenderOpacity`, `PanelWidget:GetChildrenCount`, `PanelWidget:GetChildAt`; их использование для этой новой цепочки ещё не проверено.
+
+`HPBar` использует `Hp_bar`, `Hp_frame`, `Hp_bartip`, `HudHpBarMask`, `TickPercentSpeed=0.3`. `HPDamageBar` занимает тот же прямоугольник (Left=16, Top=14, 350×16), использует `Hp_base`, `Hp_barRed`, `Hp_frame`, `TickPercentSpeed=0.6`. Предупреждение `WarningBar` также лежит поверх области HP и управляется анимацией `Warning`: `FillColorAndOpacity`, включая её alpha. Поэтому отдельно оставить ярким только foreground HPBar — недостаточный кандидат для целостной нативной полоски.
+
+Внутри `HUDProgressBarUMG_BP_C`: `CanvasPanel_0` содержит `Bg_Imgage` (именно это написание), `Bar_ProgressBar`, `Frame_Image`, `Mak_RetainerBox`; в retainer находится `CanvasPanel_1` с `Head_Img`. Эти внутренние эффекты/материалы не следует переписывать ради независимого внешнего RenderOpacity.
+
+**Кандидат границы «полоска HP»:** HPBar + HPDamageBar + HPArrow_Image + четыре HPFrameLine + WarningBar, с сохранением native Visibility и внутренних цветовых alpha. Это техническая рекомендация по слоям полоски, а не результат визуальной приёмки. APBar, ExpBar, UnUsePoint_Image, DamageTipList_Panel и HUDUseItemUMG_BP относятся к остальному левому HUD и должны приглушаться независимо от неполного HP.
+
+### Наследование прозрачности и финальный writer
+
+При alpha родителя 0.20 и alpha ребёнка 1.0 эффективный вклад остаётся 0.20. Поэтому оставить `LeftBottom_Panel` на 0.20 и выставить HPBar=1.0 нельзя. Обратная компенсация alpha, перенос виджетов/создание дубликата полоски, смена Visibility, правка материалов или .pak расширяют вмешательство и не нужны по найденной структуре.
+
+Минимальный кандидат: убрать **собственное** приглушение общих левых предков; задавать отдельные множители HP-группе и остальным непосредственным детям статусного Main_Panel, плюс `HUDUseItemUMG_BP`. Правые цели сохраняются. Общие предки остаются под управлением игры: меню/кат-сцены могут скрывать или приглушать весь HUD. «Полностью видимая HP» означает отсутствие дополнительного приглушения CombatHUD, не отмену нативного скрытия. Не умножать alpha одновременно у родителя и его потомков (иначе 0.20×0.20).
+
+Статический final-writer анализ: `HUDStatusBarUMG_BP_C:Tick` входит в ubergraph на 10, прыгает на 15 и возвращается; Construct сразу возвращается на 15. Blueprint не содержит здесь обновления HP или RenderOpacity. `HUDProgressBarUMG_BP_C:Tick` входит на 1010 и завершает ветку; его Construct/PreConstruct настраивают brushes/style/Visibility, а не доказанный новый opacity-контроллер. `HUDMainUMG_BP` Construct вызывает SteamDeckUpdate; тот меняет scale/translation. Native классы и `Warning`-анимация продолжают участвовать в финальном рендеринге. Отсутствие opacity-write в этих Blueprint **не доказывает** отсутствие записи из C++ или других систем.
+
+Следовательно, восстановление прежнего parent-множителя и независимые leaf-множители логически решают наследование, но отсутствие конкурирующего native writer и реальный рендеринг новых целей ещё требуют runtime-проверки. Не записывать 1.0 в общие предки каждый update: это может переопределить игру. При переходе со старой схемы учитывать ранее записанный модом parent alpha; способ cleanup/rollback должен быть проверен до установки нового кандидата.
+
+### D. Рекомендация и граница готовности
+
+Предпочтительная архитектура после закрытия пробелов: сохранить owning-pawn/battle/time/discovery/error path CombatHUD; читать штатные HP getters; разделить внешний opacity на `otherAlpha` и `hpAlpha`; не перехватывать расчёт урона и не менять характеристики. Предпочтение sampled delta или HP-событию зависит от проверки полноты, описанной выше. Независимые leaf-цели проще и уже, чем reparenting/дублирование/native patch, однако ещё не прошли runtime gate.
+
+Семантика будущей policy, вытекающая из REQUIREMENTS:
+
+1. Подтверждённая потеря HP немедленно ставит оба собственных множителя в 1.0 и обновляет время последнего урона, даже в середине fade. Обход плавного reveal нужен именно для этого события; обычный вход в бой сохраняет принятую политику перехода.
+2. Вне боя `otherAlpha` ждёт 1.5 с после последнего урона/обычного выхода из боя, затем за 1.0 с идёт к 0.20; повторный урон перезапускает hold.
+3. При current < max `hpAlpha=1.0` независимо от таймера и при загрузке уже раненого pawn. Это не удерживает яркость остальных элементов.
+4. Переход из неполного в полное HP запускает **отдельный HP hold** на 1.5 с от восстановления, затем fade 1.0 с. Не перезапускать таймер остальных панелей одним лечением. Возвращение в бой подчиняется действующей боевой логике.
+5. Игровое время сохраняет паузу; смена HUD/pawn, время назад, невалидные данные/ошибка сбрасывают сравнение, восстанавливают все реально затронутые цели и не генерируют ложный урон. Не восстанавливать посторонние native цвета/Visibility.
+
+Production readiness: **BLOCKED**. Статические владельцы getters и widget slots установлены; реальный UE4SS binding, полнота/задержка детектора и окончательное владение opacity новых leaf-целей не доказаны. Исследование достаточно, чтобы перейти к ограниченной проверке этих конкретных неизвестных, но не чтобы объявить новую production-логику готовой.
+
+### Минимальный следующий runtime-probe — только описание, не реализован
+
+Сначала отдельное разрешённое **наблюдение данных**, без изменения gameplay/opacity и без вызова событий урона:
+
+- На проверенном HUD/pawn получить reflection ровно двух getters: точные Parm, float return и flags; проверить CDO. Прочитать пару HP/max, проверить значения при полном/неполном HP и лечении. Логировать только identity и изменения, с game time и bounded sampling; не делать полный object dump.
+- Один раз на поколение HUD снять parent-chain от HPBar/HPDamageBar/HPArrow/WarningBar, имена/классы/адреса непосредственных соседей и их RenderOpacity/Visibility; проверить доступность GetParent/GetChildrenCount/GetChildAt. Подтвердить возможность привязать DamageTipList_Panel по точному имени и связи, без глобального поиска.
+- На естественных пользовательских примерах удара, падения, яда/DoT и огня/среды сопоставить current HP с точным временем и доступными reflected damage events. Сначала снять их подписи и порядок; только затем рассматривать наблюдающие hooks без замены аргументов/результатов. Падение без урона/блок/неуязвимость нужны как отрицательные примеры, если доступны естественно. Не вызывать damage setters, не создавать урон искусственно. Наблюдение обычных сценариев само по себе не доказывает отсутствие потерь между samples.
+
+Результат этого наблюдения должен либо подтвердить достаточно узкий post-commit seam, либо оставить явно открытым ограничение sampling. Не начинать широкую инвентаризацию всех событий игры. Если происхождение/полнота событий остаются неизвестными, остановиться с этим пробелом; не выбирать polling как полный эквивалент без отдельного решения пользователя.
+
+После данных, отдельным обратимым **визуальным экспериментом** по правилам runtime harness проверить предложенные leaf-группы, native writer и rollback. Простое read-only чтение opacity не докажет, что C++ не перезаписывает установленный модом множитель. До такой проверки подготовить сохранение/восстановление только своих прежних значений и проверенный cleanup; не hot reload принятого мода. Проверить HP отдельно от выносливости/опыта/предметов, Warning/damage trail, меню/кат-сцены, паузу и смену HUD. Не совмещать непроверенную data-source и opacity-архитектуру в production-кандидат.
+
+Проверка handoff: существующие `tools/test.py CombatHUD` (policy и mock adapter) пройдены на неизменённом Lua; `git diff --check` пройден. Это проверка сохранённой базы, не новой HP-функции. Изменяются только этот документ и STATUS.md.
+
+Ни один probe, визуальный эксперимент или runtime-тест новой функции в рамках этой задачи не создан и не запущен. Исторические raw evidence остаются в ignored `.local` и исходном архиве; публичный handoff содержит только производные факты и ограничения.
