@@ -39,4 +39,53 @@ function M.step(state, now, battle, config)
     return state.alpha, mode
 end
 
+local function finite(value)
+    return type(value) == "number" and value == value and math.abs(value) < math.huge
+end
+
+-- The ordinary HUD follows combat and recent damage. The HP/item group also
+-- remains bright while injured and starts its own delay when HP becomes full.
+-- Both use the already-accepted fade policy, with no extra timer framework.
+function M.newHealth()
+    return { ordinary = M.new(), vital = M.new() }
+end
+
+local function resetHealth(state)
+    state.ordinary, state.vital = M.new(), M.new()
+    state.previousHp, state.previousMax, state.lastSampleTime = nil, nil, nil
+    state.wasInjured = nil
+end
+
+function M.stepHealth(state, now, battle, hp, maxHp, config)
+    if not finite(now) or type(battle) ~= "boolean" or not finite(hp) or
+       not finite(maxHp) or maxHp <= 0 or hp < 0 or hp > maxHp then
+        resetHealth(state)
+        return 1.0, 1.0, "unknown", "unknown", false
+    end
+
+    -- New game-time generation or changed maximum: acquire a fresh baseline.
+    -- Neither is evidence that the character took damage.
+    if (state.lastSampleTime and now < state.lastSampleTime) or
+       (state.previousMax and maxHp ~= state.previousMax) then
+        resetHealth(state)
+    end
+
+    local injured = hp < maxHp
+    local damage = state.previousHp ~= nil and hp < state.previousHp
+
+    if damage then
+        -- Showing the HUD after damage is immediate, even during a fade.
+        state.ordinary, state.vital = M.new(), M.new()
+    elseif injured and state.wasInjured == false then
+        -- A newly incomplete bar is important even without a damage delta.
+        state.vital = M.new()
+    end
+
+    state.previousHp, state.previousMax = hp, maxHp
+    state.lastSampleTime, state.wasInjured = now, injured
+    local ordinary, ordinaryMode = M.step(state.ordinary, now, battle, config)
+    local vital, vitalMode = M.step(state.vital, now, battle or injured, config)
+    return ordinary, vital, ordinaryMode, vitalMode, damage
+end
+
 return M
