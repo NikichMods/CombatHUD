@@ -4,7 +4,7 @@
 
 Outside combat the HUD fades to 20% after a 1.5-second hold, with a 1-second transition. Combat restores full brightness over 1 second. Detected damage immediately reveals the HUD, including outside combat. While HP is incomplete, the health bar and all three quick-item slots stay bright; other elements fade independently. Healing to full starts a separate hold for health and items. Native menu hiding remains controlled by the game.
 
-[Stable CombatHUD 0.2.0 source](https://github.com/NikichMods/AsterigosMods/tree/CombatHUD-v0.2.0/CombatHUD). A verified ZIP is prepared locally; the public packaged release is pending. Tested with Steam 1.09/build12996889, Windows x64, UE4.27, UE4SS v3.0.1-1181-g83330635 and DX11. Other builds are unverified.
+[Download CombatHUD 0.2.0](https://github.com/NikichMods/AsterigosMods/releases/tag/CombatHUD-v0.2.0) — ZIP and SHA-256 checksums. Tested with Steam 1.09/build12996889, Windows x64, UE4.27, UE4SS v3.0.1-1181-g83330635 and DX11. Other builds are unverified.
 
 ## Install
 

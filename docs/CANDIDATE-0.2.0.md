@@ -1,6 +1,6 @@
 # CombatHUD 0.2.0 — runtime candidate
 
-Status: 0.2.0 explicitly accepted for stable promotion on 2026-10-27 after the successful damage/healing/combat/menu test. The exact tested payload is preserved in main and the published CombatHUD-v0.2.0 source tag. The ZIP is prepared and verified locally; GitHub Release publication is pending explicit permission. Crystals remain deferred until natural unlock.
+Status: 0.2.0 explicitly accepted for stable promotion on 2026-10-27 after the successful damage/healing/combat/menu test. The exact tested payload is preserved in main and the published CombatHUD-v0.2.0 source tag. The exact prepared ZIP and checksums are published in the stable GitHub Release; both public downloads were verified against the original files. Crystals remain deferred until natural unlock.
 
 - Branch: `feature/combathud-hp-visibility`.
 - Exact payload source commit: `ca342e33442a11b46a9ab30ed8e8cd796c9a8d60`.
@@ -50,7 +50,16 @@ The payload is unchanged; previous accepted 0.1.0 rollback remains preserved. Th
 
 The user explicitly accepted CombatHUD 0.2.0, authorized main promotion and requested preservation of the previous version for rollback. Visible crystals/input-mode testing remains deferred until natural unlock. This is the accepted scope, not a claim that every game state has been tested.
 
-- Published stable source tag: `CombatHUD-v0.2.0`, commit `6fd1373da08f332b0340006ad5f52d3c0f43083d`. Main integration commit: `281fe9ce6f1130cfc38330e14c2bd5402eff1bdd` (also preserves parallel research bootstrap). GitHub Release publication is pending explicit permission. The tag records the main promotion state; the tested Lua source identity remains `ca342e33442a11b46a9ab30ed8e8cd796c9a8d60`.
+- Published stable source tag: `CombatHUD-v0.2.0`, commit `6fd1373da08f332b0340006ad5f52d3c0f43083d`. Main integration commit: `281fe9ce6f1130cfc38330e14c2bd5402eff1bdd` (also preserves parallel research bootstrap). [GitHub Release](https://github.com/NikichMods/AsterigosMods/releases/tag/CombatHUD-v0.2.0) is published; the user explicitly authorized the prepared ZIP and checksum publication. The tag records the main promotion state; the tested Lua source identity remains `ca342e33442a11b46a9ab30ed8e8cd796c9a8d60`.
 - Package: `CombatHUD-0.2.0.zip`, SHA-256 `d7cd5c9e62f65ed2802d5ac2614ca11a09d5cc79a8c42852c3cd124dcaa37c0d`. Only the exact frozen Lua payload, VERSION, installation guidance and original-code license notices are included. No host assets, research probes, UE4SS or UEHelpers are bundled.
 - Packaging checks: archive member allowlist, ZIP integrity and byte equality of both Lua members against the frozen candidate and source commit; VERSION/startup/package/tag identity agree. Previous 0.1.0 rollback and the original source archive hashes rechecked. Installed game files are not replaced during promotion.
 - Support-log audit: startup version, UE4SS identity, player binding and sparse state transitions are visible; failure paths name disable/restore outcomes and are covered by existing adapter tests. No per-tick success trace or experimental key bindings are shipped. The literal startup word "candidate" remains in the accepted immutable Lua; version/hash identity is authoritative.
+
+## Publication verified — 2026-10-27
+
+Stable GitHub Release `CombatHUD-v0.2.0`, release ID `425958780`, was published at 20:37:08 UTC (23:37:08 MSK), with draft=false and prerelease=false. [Release page](https://github.com/NikichMods/AsterigosMods/releases/tag/CombatHUD-v0.2.0).
+
+- [CombatHUD-0.2.0.zip](https://github.com/NikichMods/AsterigosMods/releases/download/CombatHUD-v0.2.0/CombatHUD-0.2.0.zip): 12467 bytes; SHA-256 `d7cd5c9e62f65ed2802d5ac2614ca11a09d5cc79a8c42852c3cd124dcaa37c0d`.
+- [CombatHUD-0.2.0-SHA256SUMS.txt](https://github.com/NikichMods/AsterigosMods/releases/download/CombatHUD-v0.2.0/CombatHUD-0.2.0-SHA256SUMS.txt): 277 bytes; SHA-256 `0a7bf84ea9fea3c8879739d143d47eb2c875eee2c6fa2cee4e14c79d3b57624a`.
+- GitHub upload digests matched the local files. Both files were then downloaded using their public URLs without authentication; downloaded SHA-256 values matched the prepared assets. The downloaded ZIP's Lua members match the frozen candidate and installed source identity.
+- Publication does not replace installed game files or modify the accepted payload/tag. Previous 0.1.0 rollback remains preserved. Visible crystals/input-mode testing stays deferred until natural unlock. Main promotion and package publication are complete; no further permission is pending for this release.
