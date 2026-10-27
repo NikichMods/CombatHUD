@@ -1,4 +1,9 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
+## Актуальный результат: runtime HP и структура подтверждены, 2026-10-27
+
+Read-only probe-02 успешно прочитал штатные HP-getters на owning pawn Хильды и подтвердил parent/child identity восьми HP-слоёв и 12 детей статусной панели. Наблюдался цикл `680/680 → 532.07415771484/680 → 680/680`, 577 samples, штатная автоматическая остановка. Probe удалён при закрытой игре; production Lua/VERSION и loader list не менялись. **Можно переходить к отдельному обратимому визуальному эксперименту.** Production-реализация всё ещё требует проверки native opacity writer, независимого рендеринга групп и cleanup.
+
+Точная идентичность, значения, границы и результаты находятся в разделе «Успешная runtime-сессия probe-02» в конце документа. Следующие статические и подготовительные разделы сохраняют историю доказательств; их прежние открытые HP-binding/structure вопросы закрыты этой сессией, но opacity-проверка ещё не проводилась.
 
 ## Принятая runtime-база
 
@@ -147,9 +152,9 @@ HUDMainUMG_BP_C
 4. Переход из неполного в полное HP запускает **отдельный HP hold** на 1.5 с от восстановления, затем fade 1.0 с. Не перезапускать таймер остальных панелей одним лечением. Возвращение в бой подчиняется действующей боевой логике.
 5. Игровое время сохраняет паузу; смена HUD/pawn, время назад, невалидные данные/ошибка сбрасывают сравнение, восстанавливают все реально затронутые цели и не генерируют ложный урон. Не восстанавливать посторонние native цвета/Visibility.
 
-Production readiness: **BLOCKED**. Статические владельцы getters и widget slots установлены; реальный UE4SS binding, фактическое чтение двух getters и окончательное владение opacity новых leaf-целей не доказаны; допустимость sampled detection согласована, но его runtime корректность ещё не испытана. Исследование достаточно, чтобы перейти к ограниченной проверке этих конкретных неизвестных, но не чтобы объявить новую production-логику готовой.
+На момент статического исследования production readiness: **BLOCKED**. Статические владельцы getters и widget slots установлены; реальный UE4SS binding, фактическое чтение двух getters и окончательное владение opacity новых leaf-целей не доказаны; допустимость sampled detection согласована, но его runtime корректность ещё не испытана. Исследование достаточно, чтобы перейти к ограниченной проверке этих конкретных неизвестных, но не чтобы объявить новую production-логику готовой.
 
-### Минимальный следующий runtime-probe — только описание, не реализован
+### План runtime-probe на момент статического исследования
 
 Сначала отдельное разрешённое **наблюдение данных**, без изменения gameplay/opacity и без вызова событий урона:
 
@@ -171,7 +176,7 @@ Production readiness: **BLOCKED**. Статические владельцы get
 
 Проверены Lua syntax и три отрицательных mock-сценария (функция отсутствует, неверная сигнатура, отсутствует static flag): probe отключается до вызова HP; очередь не накапливает второй game-thread callback. Эти проверки не доказывают реальные привязки. Probe ограничен известными объектами, не меняет opacity/Visibility/HP, не вызывает damage events и не пишет save-state. Процедура и минимальная матрица принадлежат README probe.
 
-**Runtime результат пока ожидается.** Подготовка/установка не означают работоспособность getters или подтверждение структуры. После пользовательского запуска нужно сохранить свежий лог, сопоставить source/installed SHA256 и наблюдения; после закрытия игры убрать только отдельный probe. Переход к визуальному эксперименту пока не подтверждён.
+**Статус на момент подготовки: runtime результат ожидается.** Подготовка/установка не означают работоспособность getters или подтверждение структуры. После пользовательского запуска нужно сохранить свежий лог, сопоставить source/installed SHA256 и наблюдения; после закрытия игры убрать только отдельный probe. Переход к визуальному эксперименту пока не подтверждён.
 
 ### Первая runtime-сессия: 2026-10-27, 17:16–17:17 МСК
 
@@ -182,3 +187,58 @@ Production readiness: **BLOCKED**. Статические владельцы get
 **Не подтверждено:** сами getter-вызовы и числовые результаты, различение полного/неполного HP, live связи HP-виджетов. В 17:16:31 probe остановился на ancestry-check owning pawn, `samples=0`. Он не дошёл до OWNER/структуры или BEFORE_READ. Полное имя неподходящего pawn первая попытка не записывала — его конкретный класс неизвестен. В той же сессии принятый CombatHUD в 17:16:40 подтвердил `hilda_BP_C`; это показывает, что первая проверка observer была слишком ранней и ошибочно фатальной. Сообщение пользователя о потере/восстановлении HP не заменяет отсутствующие числовые samples.
 
 Исправление только исследовательское: [probe-02](../research/hp-readonly-probe-02/README.md) пропускает отсутствующий/неподходящий owning pawn и повторяет bounded HUD acquisition, как production adapter. Он пишет WAIT_OWNER с фактическим именем, не вызывает getters на неподходящем объекте; неоднозначный HUD также ожидается. Reflection выполняется один раз, не при каждом ожидании. Проверены синтаксис и отрицательный mock startup-owner: ожидание без STOP/HP-вызовов и не чаще одного discovery в секунду. Probe-01 и его evidence сохранены без изменения. Production Lua/VERSION не изменены; следующая попытка требует нового пользовательского запуска. **Визуальный эксперимент всё ещё не готов: data/structure gate открыт.**
+
+## Успешная runtime-сессия probe-02: 2026-10-27, 17:24–17:26 МСК
+
+### Идентичность и сохранность окружения
+
+- Игра: принятый Steam 1.09/build12996889, UE4.27, Windows x64; свежий лог loader сообщает `UE4SS v3.0.1`, Git SHA `83330635`. Окружение DX11/Smooth Motion — принятая проектная база, новый FPS/графический benchmark не проводился.
+- Source: `9f1514058029aa77928faf03daf3f94ea9c7fed0`, `CombatHUD/research/hp-readonly-probe-02/main.lua`, ID `combathud-hp-readonly-02`.
+- SHA256 установленного и сохранённого Lua: `a4407110e1aeb95f12ba04cf906d860228b149401aafbfbfcebb1db9d0381ab6`. Он совпал с installation manifest после сессии; production CombatHUD и SoulsEnemyHUD совпали с pre-install hashes.
+- SHA256 полного свежего UE4SS log snapshot: `cb62a34b09212c75f26146dfd3e33b744c7decad0a77d2fdf5a2337ba8aa1694`. Raw log, manifests и frozen installed source сохранены локально в ignored evidence вне loader paths; в Git не публикуются приватные пути или полный лог.
+- Loader запустил отдельный probe в 17:24:30. В 17:25:27 он остановился сам: `reason=full-partial-recovered-observed samples=577 full_seen=true partial_seen=true recovery_seen=true`. Строк REJECT этой попытки нет. `Event loop end` — 17:26:14, после пользовательского выхода. Probe не пишет host data и не регистрирует hooks.
+- При cleanup подтверждено отсутствие процесса игры. Удалены только известные `CombatHUDHPProbe/enabled.txt`, `Scripts/main.lua` и опустевшие каталоги, без recursive delete; отдельной папки probe больше нет. `mods.txt`, production Lua обоих модов и VERSION не менялись. Игру запускал/закрывал пользователь; автоматического запуска/завершения и hot reload не было.
+
+### 1. Реальный HP binding и значения
+
+В 17:24:47 обе UFunction найдены по точным путям `/Script/Genesis.GameGlobal:GetHP` и `:GetMaxHP`. Для каждой `ForEachProperty` вернул ровно:
+
+- `ObjectProperty /Script/Genesis.GameGlobal:<method>:Character`;
+- `FloatProperty /Script/Genesis.GameGlobal:<method>:ReturnValue`.
+
+`GetFunctionFlags()` обеих = `335684609`, static bit `0x2000` установлен. Объект вызова — `GameGlobal /Script/Genesis.Default__GameGlobal`. В 17:24:57 проверена ancestry owning pawn до `GenesisCharacter`, конкретный класс `hilda_BP_C`. Источник pawn — именно `hud:GetOwningPlayerPawn()`, как в принятом CombatHUD; глобальный поиск Хильды не использовался. `global:GetHP(pawn)` и `global:GetMaxHP(pawn)` оба успешно завершились с Lua `type=number`.
+
+| Событие | МСК | Game time, с | Current HP | Max HP | Проверка |
+| --- | --- | --- | --- | --- | --- |
+| Первый валидный sample | 17:24:57 | 7.4113392829895 | 680.0 | 680.0 | `full=true`, baseline; не событие урона |
+| Наблюдённая потеря | 17:25:19 | 30.002870559692 | 532.07415771484 | 680.0 | `full=false`, delta `-147.92584228516` |
+| Начало зарегистрированного роста | 17:25:24 | 35.302646636963 | 534.79418945312 | 680.0 | Положительная delta; всё ещё неполное HP |
+| Полное восстановление | 17:25:27 | 37.98588180542 | 680.0 | 680.0 | `full=true`, последняя delta `5.5846557617188` |
+
+В течение наблюдения max оставался 680; HP после урона дробное и затем постепенно возрастало до точного равенства max. Таким образом `hp < max` и `hp == max` различают проверенные состояния без округления отображаемой полоски и без произвольного epsilon. Это не доказательство целочисленности HP, универсального float-допуска или поведения при buffs/max changes. Не округлять current HP до целого перед sampled delta.
+
+577 samples относятся примерно к 30.6 секунды game time в одном поколении pawn/HUD. Это sanity-check adopted 50-мс пути, не гарантия realtime-латентности, не измерение стоимости getters и не доказательство всех случаев урона/лечения между samples. Выбранное пользователем ограничение sampling остаётся в силе.
+
+### 2. Реальная доступность и parent identity
+
+Одна и та же live структура подтверждена через reflected ObjectProperty, `Widget:GetParent`, `PanelWidget:GetChildrenCount/GetChildAt`, `GetRenderOpacity`, `GetVisibility`:
+
+- `hud.HUDStatusBarUMG_BP` (`HUDStatusBarUMG_BP_C`) и `hud.HUDUseItemUMG_BP` (`HUDUseItemUMG_BP_C`) имеют родителя, совпадающего по адресу с `hud.LeftBottom_Panel` (`CanvasPanel`). Родитель LeftBottom — `HUD_Panel`.
+- `status.HPBar:GetParent()` даёт `CanvasPanel Main_Panel`; его родитель — `CanvasPanel_0`. У `CanvasPanel_0:GetParent()` результат nil: это корень вложенного UserWidget. Нельзя восстанавливать весь owner path одним непрерывным GetParent через границу UserWidget; связь к status берётся через проверенную reflected owner-ссылку.
+- Все восемь HP-целей доступны как `status[key]` и имеют тот же parent address `Main_Panel`: `HPBar`, `HPDamageBar` (`HUDProgressBarUMG_BP_C`), `HPArrow_Image` (`Image`), `WarningBar` (`ProgressBar`), `HPFrameLine0_Img`…`HPFrameLine3_Img` (`Image`).
+- Соседи `APBar`, `ExpBar`, `UnUsePoint_Image` доступны reflected-ссылками и имеют того же родителя.
+- `Main_Panel:GetChildrenCount()` = 12. Zero-based children enumeration вернула уникальные имена: `UnUsePoint_Image`, `ExpBar`, `HPDamageBar`, `HPBar`, `WarningBar`, `APBar`, `HPArrow_Image`, `HPFrameLine0_Img`, `HPFrameLine1_Img`, `HPFrameLine2_Img`, `HPFrameLine3_Img`, `DamageTipList_Panel` (порядок именно наблюдённой enumeration, не утверждение о z-order).
+- Для всех HP-слоёв и трёх reflected соседей адрес найденного по точному имени child совпал с reflected-ссылкой. `DamageTipList_Panel` — `CanvasPanel`, найден в этом bounded наборе; адрес `status.TipItem_0:GetParent()` совпал с ним. Для этой задачи не нужен глобальный поиск или недоказанное прямое поле `status.Main_Panel`/`status.DamageTipList_Panel`.
+- Итоговая строка: `STRUCTURE_OK generation=1 child_count=12 hp_layers=8 sibling_lookup=exact-name-and-parent`.
+
+Однократное чтение в 17:24:57: RenderOpacity всех 18 записанных WIDGET = 1.0. Raw Visibility: status/left/items/status-main/status-root/HPBar/HPDamageBar/APBar/ExpBar/DamageTipList_Panel = 4; HUD_Panel/WarningBar = 3; HPArrow и четыре HPFrameLine = 0; UnUsePoint_Image = 2. Сохраняются именно raw значения UE4SS enum, не предполагается, что все эти слои визуально одинаково активны. Native Warning цветовая alpha и видимость не переопределялись. Snapshot opacity в момент acquisition не доказывает отсутствие другого writer позже, включая действующий CombatHUD, который затем приглушает общий LeftBottom.
+
+### 3. Загрузка, пределы и следующий gate
+
+Probe-02 в 17:24:47 увидел `DefaultPawn` в `UIOnlyMap`, вывел `WAIT_OWNER` и не вызвал HP на нём. В 17:24:57 появился другой HUD и owning `hilda_BP_C`; только тогда выполнены структура и getter reads. Это непосредственно подтверждает необходимость пропускать startup UI pawn, не подбирать альтернативного персонажа и сбрасывать sampled baseline при приобретении рабочего владельца. Первая попытка была ошибкой observer, не доказательством неисправности HP API.
+
+**Gate этого шага: PASS** — реальные calls/signatures/finite values/full vs partial, HP targets, parents и bounded sibling identity проверены в одной сессии. **Готовность отдельного визуального эксперимента: READY**, без production-реализации в этой задаче.
+
+Осталось для отдельного opacity-этапа: подтвердить видимый состав HP-группы (рамка, damage trail, warning), независимое приглушение AP/опыта/предметов/подсказок, отсутствие конкурирующей C++/анимационной записи RenderOpacity, сохранение native меню/кат-сцен и точный cleanup/rollback собственных множителей без hot reload. Read-only evidence не закрывает эти вопросы.
+
+Не проверялись этой сессией: смена playable pawn/respawn или HUD после начала HP samples, max HP changes, пауза/возврат времени, новые failure/fallback ветки production, все типы урона, другие билды/UE4SS и FPS. Для реализации сохранить принятую lifecycle/fallback политику и тестировать изменяемое поведение отдельно; уже подтверждённые static extraction и HP/структуру не повторять без нового основания.
