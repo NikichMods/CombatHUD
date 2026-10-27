@@ -1,0 +1,115 @@
+{
+  "originalRepository": "NikichMods/AsterigosMods",
+  "originalCommit": "f56e30d6dc1edf4233909177c8d02d6b8b26b409",
+  "originalPrefix": "CombatHUD/",
+  "extractedCommit": "9c72440451cee4aafabb5fa5208e3710042d6749",
+  "extractedTree": "6149080ba2dec55dcd3b310a729cae6ab5e89af6",
+  "branch": "research/combathud-hp-visibility",
+  "files": {
+    "AGENTS.md": {
+      "original_path": "CombatHUD/AGENTS.md",
+      "original_blob": "c57f330c8486230a487b6ade6c3e19644a9783ee",
+      "sha256": "4f53f4085e87d86afa7541f580adf7d82542df074d2c709afb4b92eba350110d"
+    },
+    "LICENSE-NOTICE": {
+      "original_path": "CombatHUD/LICENSE-NOTICE",
+      "original_blob": "339c645985ab351372ffe71e956e22f46bbde645",
+      "sha256": "92b915ba613977889d175ff08765381c5509dfa8f4dd4d15a68e3fe1b9c9f808"
+    },
+    "README.md": {
+      "original_path": "CombatHUD/README.md",
+      "original_blob": "0b4c0ea49343b870b55fe6a4da5a7195a5e9eff2",
+      "sha256": "44344ba4883229f279cd88e5cc9f522fe9727725b94f9286a207d281ee9a19fa"
+    },
+    "Scripts/main.lua": {
+      "original_path": "CombatHUD/Scripts/main.lua",
+      "original_blob": "ed45eb9fe33c95cd16e8747cc9105d0d50705b3f",
+      "sha256": "63f4de5a4a59a4dd263a782d46ed194ccf1f89683cabfd45b7ba68445e8e8c30"
+    },
+    "Scripts/policy.lua": {
+      "original_path": "CombatHUD/Scripts/policy.lua",
+      "original_blob": "c676702d6f2cbe16b6362da5f5d9681d18757e62",
+      "sha256": "d47eb701863875bfebee249d4514abaf06d004489b4e467a649bb2daea33a095"
+    },
+    "VERSION": {
+      "original_path": "CombatHUD/VERSION",
+      "original_blob": "6e8bf73aa550d4c57f6f35830f1bcdc7a4a62f38",
+      "sha256": "e9dd8507f4bf0c6f42458e41aea833ad0bd3f6127272335eee9bf4d58541ed67"
+    },
+    "docs/REQUIREMENTS.md": {
+      "original_path": "CombatHUD/docs/REQUIREMENTS.md",
+      "original_blob": "64b71e1e96648e7849fadd255e536f30d51689ff",
+      "sha256": "e08e35b11abee8fb62c9c1db8183bee9a165ac70726e0a0f60829576014f838c"
+    },
+    "docs/STATUS.md": {
+      "original_path": "CombatHUD/docs/STATUS.md",
+      "original_blob": "9fe6d00bf509200033d080878b2056b80e23d63e",
+      "sha256": "aa2d73c884463217af83369882511316c7bd90b0576c52898df58ca5d71fc7ec"
+    },
+    "docs/VERIFIED_RUNTIME.md": {
+      "original_path": "CombatHUD/docs/VERIFIED_RUNTIME.md",
+      "original_blob": "81c63c70f88fb47bc0e59fd1fae257d209cd9b16",
+      "sha256": "d7f45b98ae8d9834f59c645c2826aa042ad39f0c383cf376b0ebe257ddd8ed11"
+    },
+    "research/hp-readonly-probe-02/README.md": {
+      "original_path": "CombatHUD/research/hp-readonly-probe-02/README.md",
+      "original_blob": "a3ab7616601c1cd247d978e5b490ee5067da629a",
+      "sha256": "130b2dee56fdf503f6eb4f7669a5ace93f565f9bc8e0a94146cee0bd974c05f6"
+    },
+    "research/hp-readonly-probe-02/main.lua": {
+      "original_path": "CombatHUD/research/hp-readonly-probe-02/main.lua",
+      "original_blob": "62870e49fbc2e16394523a1791ed6b3ff7535af9",
+      "sha256": "a4407110e1aeb95f12ba04cf906d860228b149401aafbfbfcebb1db9d0381ab6"
+    },
+    "research/hp-readonly-probe/README.md": {
+      "original_path": "CombatHUD/research/hp-readonly-probe/README.md",
+      "original_blob": "376966a2ca04087135473f8cd912c4125c78581e",
+      "sha256": "db07e0324597086e5d5a2e51de84763250126c27f442cbdd7e81e05215c0d4c0"
+    },
+    "research/hp-readonly-probe/main.lua": {
+      "original_path": "CombatHUD/research/hp-readonly-probe/main.lua",
+      "original_blob": "272fad1ac0cd423b5e96bd83294b671169225ace",
+      "sha256": "a0463e067688d86a0c36d663bd57cb633b8f865da5ea1142cb95451b1d0466ae"
+    },
+    "research/opacity-experiment-01/README.md": {
+      "original_path": "CombatHUD/research/opacity-experiment-01/README.md",
+      "original_blob": "dcd778cd65efc13821e9f0e194626e0400d991a9",
+      "sha256": "b5912491fccbee5c458cd63a481f004fb6158485f28b1fc56fa6f09e310ee1d5"
+    },
+    "research/opacity-experiment-01/main.lua": {
+      "original_path": "CombatHUD/research/opacity-experiment-01/main.lua",
+      "original_blob": "31443e1a1cc1a135ee6b2876941cac0b02d13a46",
+      "sha256": "eff54561ed5fe37e0e127cd2baffb0cda3147ce63e685d0e3037a262e5e9da49"
+    },
+    "research/opacity-experiment-01/test_harness.py": {
+      "original_path": "CombatHUD/research/opacity-experiment-01/test_harness.py",
+      "original_blob": "907e81e438bf1b1478659e88cd575084579f347f",
+      "sha256": "fbccaa3a3b2ef71d38f8e660cd656d37b0a8903c91f5964140710669af0f6120"
+    },
+    "research/opacity-experiment-02/README.md": {
+      "original_path": "CombatHUD/research/opacity-experiment-02/README.md",
+      "original_blob": "937ae295320868a78538b3b08a45731739856bda",
+      "sha256": "50f9426a7dcd58f943919c5fc78adf15f7f2e5519b6e4e88236eaafab5067e90"
+    },
+    "research/opacity-experiment-02/main.lua": {
+      "original_path": "CombatHUD/research/opacity-experiment-02/main.lua",
+      "original_blob": "7c604bb3f80428f69bcac4bbb3cbf89f9702400c",
+      "sha256": "aeaf1caf747c08358d70fbd93b93bc3b03064590322361a60f80e1469f3c0a2a"
+    },
+    "research/opacity-experiment-02/test_harness.py": {
+      "original_path": "CombatHUD/research/opacity-experiment-02/test_harness.py",
+      "original_blob": "4a13d13d49529774702f63f40e87645029be0c45",
+      "sha256": "8fd20a06f796d76a2f7534293251e2b3d1f6704917494873c3f95611fcdd5279"
+    },
+    "tests/test_adapter.py": {
+      "original_path": "CombatHUD/tests/test_adapter.py",
+      "original_blob": "7b4e37e68cef64cfe5e51ee48d20645e1d062a3e",
+      "sha256": "eefcb076331ef476abd1523e32f7475dfddb1706e277380b5a683b10f59826e7"
+    },
+    "tests/test_policy.py": {
+      "original_path": "CombatHUD/tests/test_policy.py",
+      "original_blob": "68ad1f9cf48abd0a07edc2edfcc9b189bbc1cb27",
+      "sha256": "03ab51755722789bcd6e693c193188b0e486570ae97d7b0a49e675488ad29a38"
+    }
+  }
+}
