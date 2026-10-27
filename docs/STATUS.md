@@ -14,3 +14,9 @@
 ## Текущий runtime-шаг, 2026-10-27
 
 Подготовлен `research/hp-readonly-probe` (`combathud-hp-readonly-01`), отдельный от production CombatHUD. Синтаксис и отключение на неверном binding проверены в mock; runtime HP/структура пока не подтверждены. Следующий шаг — установка при закрытой игре, пользовательский запуск и один цикл полного/неполного/восстановленного здоровья. Никаких opacity-экспериментов. Source/installed identity и evidence сохраняются отдельно; окончательный результат появится здесь после чтения свежей сессии. Production Lua и VERSION не изменялись.
+
+### Обновление после сессии probe-01
+
+Первая сессия подтвердила live reflection двух getters (`Character` ObjectProperty, `ReturnValue` FloatProperty, static flags) и наличие GameGlobal CDO. HP и widget-связи не прочитаны: probe-01 ошибочно завершился на ещё неподходящем owning pawn, до появления подтверждённой Хильды. `samples=0`; урон/лечение пользователя не засчитываются как проверка значений getters. Подробности и hash сессии — в VERIFIED_RUNTIME.md.
+
+Подготовлен отдельный probe-02 с ожиданием подходящего owning pawn; probe-01 заморожен. Необходим ещё один короткий пользовательский цикл неполное → полное HP. Production и VERSION не изменены. Переход к opacity-эксперименту пока заблокирован отсутствием data/structure evidence.
