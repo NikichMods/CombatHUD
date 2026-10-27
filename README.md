@@ -21,6 +21,10 @@ Damage is detected by nominal 50-ms HP sampling; loss and complete recovery betw
 - [Tested source, hashes and acceptance](docs/CANDIDATE-0.2.0.md)
 - [Changelog](CHANGELOG.md)
 
-Source: `Scripts/`; tests: `tests/`; canonical version: `VERSION`. From the repository root run `python tools/test.py CombatHUD` with dependencies from `requirements-test.txt`. Offline tests complement the user's runtime acceptance.
+Source: `Scripts/`; tests: `tests/`; canonical version: `VERSION`. From the repository root run `python tools/test.py` with dependencies from `requirements-test.txt`. Offline tests complement the user's runtime acceptance.
 
 Original code is MPL-2.0; see the repository LICENSE and LICENSING.md. Game assets, UE4SS and UEHelpers are not included.
+
+## Independent repository
+
+[Migration and exact source provenance](docs/MIGRATION.md) · [Shared Asterigos Research](https://github.com/NikichMods/Asterigos-Research/blob/main/docs/RESEARCH_INDEX.md) · [Local external dependencies](docs/LOCAL_DEPENDENCIES.md). Original release URLs and frozen artifacts remain in AsterigosMods.
