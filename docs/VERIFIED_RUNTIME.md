@@ -305,3 +305,69 @@ Closed-game cleanup подтверждён: process count0; installed source has
 **Итог механизма:** HP восемь layers + весь QuickItem_Panel можно сохранять без дополнительного приглушения, отдельно задавая alpha остальным status children, active crystal sibling и двум правым skill widgets. Иконки/количество/клавиши/фон остаются внутри native item slot, без записи их Visibility и brushes. Применённый метод не переопределяет LeftBottom_Panel, status/item roots, HUD_Panel и глобальное скрытие. Runtime и пользовательская оценка подтверждают эту схему в наблюдённой среде. Нативное изменение target-alpha не обнаружено, native ancestor writer явно наблюдался и сохранялся.
 
 **Оставшиеся границы для production:** keyboard CrystalList_Panel в обеих визуальных сессиях original alpha0, Visibility2; alternative HUDCrystalUMG_Pad_BP был активен и приглушался до0.20. Поэтому не захватывать нулевую alpha неактивной ветки как универсальную постоянную production baseline и не объявлять проверенными visible keyboard layout, переключение input mode или writer этих переходов. Не включать скрытую ветку принудительно ради теста. Если production остаётся зависим от неё, требуется отдельно подтвердить соответствующий native boundary на реально видимом layout либо обосновать более узкий target. Кроме того, ручной visual projection не проверяет автоматическую реакцию на damage, HP-full hold, battle smoothstep, respawn/HUD replacement и паузу новой policy. Это gate последующего изменения, не разрешение реализовать его в этом исследовательском шаге. Production Lua и VERSION остались без изменений, main AsterigosMods не обновлялся.
+
+## Контекстные игровые действия и skill targets — статический этап, 2026-10-29
+
+Scope: самостоятельный CombatHUD, `feature/contextual-hud-reveal`, исходная опубликованная база `7f6e0502d03df309fb5357ead469510a4b6fd7df`. Steam 1.09/build12996889 / UE4.27 / UE4SS 83330635. Прочитаны актуальные DevRules `0f4888bb9501afa42e3b9492c5794c98bf58537f` и Asterigos-Research `bea384a6ba5cfb6ca19f50ac29987107538bb107`, в частности R-005/R-006/R-008/R-010. Это исследование; Scripts/ и VERSION 0.2.0 не менялись. Установленные production SHA-256 совпали с записью принятого кандидата; опубликованный архив не менялся.
+
+### Что доказано статически
+
+| Вопрос | Установленный контракт | Что ещё не доказано |
+| --- | --- | --- |
+| Семантика взаимодействия | `EGenesisInputCommandType::Interact` = 25; это отдельная команда от UI_Enter. `EGenesisInputEventType` задаёт Pressed=0/Released=1. | Реальная доставка события без доступного объекта, в меню и после remapping. |
+| Привязки | `/Game/MainContent/Tables/DefaultInputMapping` и `DefaultInputMappingTypeB`, RowStruct `FInputMappingData`: ContextType, Command, Input(FKey), IsModifier, AllowExecuteWhenPaused и флаги сочетаний. Для Interact — Scene, AllowExecuteWhenPaused=false. | Это defaults, не текущий пользовательский mapping. Физический файл/владелец хранения настроек не установлен. |
+| Сохранённое представление и remapping | Native `FSavedInputMappingData` содержит TableRowName, Command, ContextType, Input и modifier-флаги. `GenesisPlayerController:ConfigureAndApply(TArray<FName>,TArray<FKey>)` — объявленная точка изменения; `GameGlobal:GetInputMapping(ContextType, outCommands, outButtons, outFKeys)` и `GetInputRemappingData(...)` — объявленные readers. | Тело native mapping manager и round-trip сохранения не исследованы; setter не вызывался. Массивные getters ещё не вызываются probe из-за отдельной ABI/array границы. |
+| Модификатор навыков | `SpecialSkill_Switch` = 14, IsModifier=true в обеих default-таблицах. У `GenesisPlayerController` объявлен zero-input bool `GetModifier_SpecialSkill()`. | Getter не был вызван в этой задаче. Сброс на UI, focus loss и смену устройства неизвестен. Для keyboard в этих defaults отдельной SpecialSkill_Switch строки не обнаружено; нельзя обещать несуществующее удержание на этом layout. |
+| Action edge seam | `GenesisPlayerController:NotifyActionInput(Command,EventType)` объявлен BlueprintImplementableEvent; `onActionInputEvent` — dynamic multicast с двумя enum. Native `OnActionInputPressed/Released(Target:ActionInputMappingListener*)` — callable callbacks. | У выгруженного `MainPlayerController_BP` нет override NotifyActionInput. Декларация не доказывает пригодность RegisterHook или фактический dispatch. У отражённого listener не видны command/key fields; один Target pointer ещё не идентифицирует действие. |
+| Gameplay/UI gate | `GameGlobal:GetInputMode(bool getAction,bool getAxis)` возвращает `EGenesisInputContextType` (Scene=0, UI=1, QuestTimeEvent=2). Есть `GetNowInputControllerType()` и controller-connection event. | Сам GetInputMode не является доказательством фокуса окна или видимого gameplay. Сочетание с owning GenesisCharacter, HUD viewport и native menu visibility требует live проверки. |
+
+Default-таблицы показывают, почему нельзя кодировать физическую кнопку: Interact в preset A использует нижнюю face button, в B — правую; SpecialSkill_Switch в обеих — верхнюю. Это примеры shipped defaults, не текущий пресет пользователя. Принятая концепция по-прежнему опирается на действия.
+
+У существующего Blueprint `MainPlayerController_BP:NotifyCoherentHudInput` найдены input-параметры `cmd:FString`/`IsPressed:bool`; stub 36 вызывает ubergraph entry814. В ubergraph ветви913/927/979 направляют строку в `GTGameHUDBPLocal:UI_Input` / `UI_InputReleased`. Это подтверждает маршрут Coherent/UI, а не универсальный gameplay Interact. Не выбирать его молчаливой заменой action-source. Ни один callback этой задачи ещё не наблюдался в игре.
+
+### Skill panel: установленные assets и границы независимой opacity
+
+- `HUDMainUMG_BP` владеет отдельными `HUDSkillUMG_BP` и `HUDActiveSkillUMG_BP`; это уже две правые цели принятого CombatHUD 0.2.0. Общий `HUD_Panel`/menu ancestors нельзя принуждать к яркости или visible.
+- `/Game/MainContent/Template/UMG/HUD/HUDSkillUMG_BP`: `SkillSlotList_Panel` имеет четыре `HUDSkillSlotUMG_KeyBoard_BP_C` (`SkillSlotIKB0..3`). В том же root есть SPBar, SpellOrb0..2, линии и числовые значения. Поэтому root означает всю функциональную SP/skill группу, не только четыре иконки. UpdateSkillSlotList использует `GetIconByInputCommand` для SpecialSkill_1..4 (19..22), а не фиксированные Z/X/C/V glyphs.
+- `HUDActiveSkillUMG_BP`: `CanvasPanel_0 → Main_Panel`, внутри четыре `HUDSkillSlotUMG_Pad_BP_C` (`SkillSlot0..3`) и `baseBg_Image`, `Key_Image`. Шесть детей не равны шести skill-иконкам. Соответствие пользовательскому описанию шести иконок **OPEN**; не переименовывать картинки в навыки и не считать весь gamepad layout проверенным по asset names.
+- Минимальные **кандидатные** targets — две уже используемые правые root-группы; не расширять до общего HUD, HP, предметов или чаровитов. При будущем независимом управлении учитывать текущую parent opacity, native visibility, активный layout и native animations/child writers. Чтение структуры не доказывает отсутствие конфликтов в ещё не наблюдённых состояниях. Эта задача не выполняет opacity writes.
+
+### Выбор механизма и готовность реализации
+
+Самый узкий предпочтительный путь: реально доставляемое семантическое Interact Pressed + проверенный native held getter/edge SpecialSkill_Switch, с Scene/owner/viewport/native-menu gate. События взаимодействия не должны потребляться/подавляться; возвращать из наблюдателей nil, не менять параметры. Нативное выполнение сохраняется. Если semantic callback не доставляется, альтернативу с runtime-resolved mapping/FKey можно рассматривать только после отдельного ABI/mapping proof, а не заменять её hardcoded keys.
+
+При потере controller/pawn/HUD, выходе из Scene и смене input state будущая policy должна сбрасывать свой latch и не ждать потерянного Released. Одного elapsed timeout нельзя выдавать за настоящее отпускание. После возврата допустимая resync с native held требует проверки, что getter сам не застревает при отпускании вне окна. Сейчас это исследовательские критерии к уже принятому требованию, а не реализованная policy.
+
+- **Interact — OPEN:** декларации/action mapping установлены; фактический observer, empty-space press, remapping и menu isolation ещё не проверены.
+- **Skill modifier — OPEN:** semantic identity/default flag и getter объявлены; held/release/device/focus semantics требуют live evidence.
+- **Skill targets — OPEN:** статическая topology установлена; обе правые root-группы известны по прежнему CombatHUD, но соответствие текущему gamepad виду и независимая skill-only граница в новых состояниях ещё не доказаны.
+- **READY только для ограниченного read-only observer.** Ни один из этих OPEN не означает доказанную невозможность (BLOCKED) или разрешение production-реализации. Чаровиты остаются за границей исследования.
+
+### Подготовленная приватная диагностика и следующий достаточный тест
+
+В ignored local evidence подготовлен `contextual-input-observer-01`, Lua SHA-256 `7263446d88adc42e55ea2b834681cda0949d2fabae7ed6fac7418a91e9e0e2b2`, base source `7f6e0502d03df309fb5357ead469510a4b6fd7df`. Исходники диагностик, дампы и машинные пути не опубликованы. Lupa Lua54 offline PASS: parse, audit отсутствия setter/input mutation, nil callback returns, enum/wrapper handling, журналирование изменённых state, time bound и malformed argument containment. Это проверка безопасности собственного observer, не engine/ABI proof.
+
+Observer пробует только указанные три action seams, читает native modifier, input mode и input-device state через game-thread dispatcher с периодом100мс; discovery ограничен разом в секунду, 5 минут/240 строк. Callback phase отмечается явно: native-pre или script-post; события и getters нельзя автоматически считать одновременным snapshot. Невозможная регистрация фиксируется HOOK_UNAVAILABLE, отсутствие callback не подменяется physical key hook. Он только читает две skill roots, их детей и HUD_Panel; не изменяет opacity/Visibility, bindings, gameplay или save. Ошибка делает observer inert.
+
+**Текущее состояние: probe подготовлен, не установлен.** Временная установка в отдельный UE4SS folder была отклонена проверкой разрешений; существующий loader/mods.txt и production payload не менялись. Для установки требуется отдельное явное подтверждение. До него никакой runtime результат не заявляется.
+
+После разрешённой установки нужен один короткий прогон в пределах5минут: несколько нажатий текущего действия взаимодействия в пустом месте; текущее удержание/отпускание выбора навыков; открыть/закрыть обычное меню и нажать подтверждение; сменить keyboard/gamepad и повторить доступные действия; один раз, удерживая модификатор, уйти из окна, отпустить его вне игры и вернуться. Не переназначать управление/не менять настройки ради теста. Попросить пользователя сопоставить видимую панель с описанием шести иконок. Затем штатно закрыть игру. Из нового лога проверить HOOK/edge delivery и соответствие nativeHeld/context/device/tree; сохранить snapshot, убрать только отдельный observer при закрытом host и сверить baseline hashes. Если семантическая точка не доставляется, это конкретный input gate, а не доказательство невозможности функции.
+
+### Точная воспроизводимая evidence identity (raw остаётся локально)
+
+CUE4Parse1.2.2 reader с GAME_UE4_27/ReadScriptData=true повторно извлёк только MainPlayerController_BP из установленного baseline. Остальные mapping/skill exports и UHT декларации переиспользованы из существующего исследования, без нового dump или запуска игры.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| MainPlayerController_BP.json | `46e49c1a1d0f08e5c7566beae2e4381b27d72f805b1c9d91eff9ab39d4678a1b` |
+| MainPlayerController_BP--NotifyCoherentHudInput.bytecode.json | `707249c92b46d82fef46af30b5ecfa19f2da4ada2d17cb64dda7361d46414f42` |
+| GenesisPlayerController.h (UHT) | `c675fcf6c6014cf838bc95c50f957f1d34f9fa03e5d74ee01f9df5d2a2552cf8` |
+| GameGlobal.h (UHT) | `a6d1b5c0828e0bcc188f05fa8e29e5e58d618c08731d4bc9fd0ba8b3c4925023` |
+| InputMappingData.h (UHT) | `7efca2bf957caac5fe3457aa6febbb317edd69c7cd92569a0ec263ae4d456477` |
+| SavedInputMappingData.h (UHT) | `15b7b9715f3c02db48b632fb935a7bc69582b4c1da5021daa4ef6868521cf08d` |
+| EGenesisInputCommandType.h (UHT) | `3e3db1836371060534d9d884bde1d2b9b50c74fd340e1fb807c4c247e5f11a94` |
+| EGenesisInputContextType.h (UHT) | `988a5fb10ea8224bda3157ca179112b148f518336679e578bb94167c5c77e3bd` |
+| DefaultInputMapping.json | `d6cc2a26d8a6337a43c44e3016b98c4417135ca3bbd835b5b86de8f7976bb9f1` |
+| DefaultInputMappingTypeB.json | `2c9a64b39ff77ac7b1e884863d09a9a1c506cb4b1f31a9223d52fde3d64a069b` |
+| HUDSkillUMG_BP.json | `becafbaadd2a9ac9c4c868188f3237f58277370d5ecea88cd777a772b0a01ab6` |
+| HUDActiveSkillUMG_BP.json | `5353be9c22f3a5a23cb5dd45012a74d5c00d627efe034a5cef2de421e1a1ee3f` |
