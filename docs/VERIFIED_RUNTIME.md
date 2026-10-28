@@ -371,3 +371,6 @@ CUE4Parse1.2.2 reader с GAME_UE4_27/ReadScriptData=true повторно изв
 | DefaultInputMappingTypeB.json | `2c9a64b39ff77ac7b1e884863d09a9a1c506cb4b1f31a9223d52fde3d64a069b` |
 | HUDSkillUMG_BP.json | `becafbaadd2a9ac9c4c868188f3237f58277370d5ecea88cd777a772b0a01ab6` |
 | HUDActiveSkillUMG_BP.json | `5353be9c22f3a5a23cb5dd45012a74d5c00d627efe034a5cef2de421e1a1ee3f` |
+
+
+Переиспользуемые статические контракты и отрицательные границы промотированы в [Asterigos-Research/main, commit 85263998dfd751e6351d03366fc66f99ecd7c6f8](https://github.com/NikichMods/Asterigos-Research/commit/85263998dfd751e6351d03366fc66f99ecd7c6f8), раздел R-014 и RESEARCH_INDEX. Runtime-доказательства туда не добавлялись.
