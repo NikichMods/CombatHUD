@@ -1,6 +1,6 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-**Contextual reveal, 2026-10-29:** native held getter and skill bindings observed; the current-PC Interact read source is READY for bounded implementation, while the complete contextual feature is not implemented or accepted. Observers01/02 were removed. The narrow current-binding continuation demonstrated GetKeyByVirtualKey and native key-edge reads on the current PC preset; observer03 was removed, without production changes. See [observer03 result](#observer03-result--current-interact-resolver-and-native-key-queries-pass-2026-10-29) for readiness and unverified scope, plus the preserved observer02 result.
+**Current evidence, 2026-10-29:** 0.3.1 contextual Interact/skill reveal was visually confirmed by the user, with exact installed hashes, native pressed hook and absence of CombatHUD runtime errors independently confirmed in [CANDIDATE-0.3.1.md](CANDIDATE-0.3.1.md). The new finite partial-HP hold of 0.4.0 has passed hosted offline tests but has **no in-game acceptance yet** (see [CANDIDATE-0.4.0.md](CANDIDATE-0.4.0.md)). Historical observer01/02/03 investigations below retain their original evidence limits; their former OPEN implementation questions are historical, not a claim that 0.3.1 remains unimplemented. Crystals and optional live input remap/focus transitions remain unverified.
 
 ## Принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
