@@ -1,17 +1,18 @@
 # Changelog
 
-## 0.4.0 — experimental, awaiting in-game acceptance
+## 0.4.0 — 2026-10-29
 
 - HP and all three quick-item slots dim after a finite six-second hold following detected damage or combat exit while injured, even when HP remains incomplete; the accepted 1-second fade remains.
 - Partial healing does not prolong the hold; full healing keeps its existing brief hold only while these elements are still bright, without a flash if already fading/dim.
 - Combat, other HUD timers, contextual Interact / skill-modifier reveal, native menu ownership and error containment remain unchanged.
-- 0.3.1 passed its game test and received stable-promotion approval, but publication is deliberately deferred until this separately tested feature cycle concludes.
+- Includes the game-tested Interact reveal and skill-modifier overlay from 0.3.1. Press Interact for a 1.5-second hold plus 1-second fade; release the skill modifier for a 1-second skill-only fade.
+- User accepted 0.4.0 in game and explicitly authorized stable publication on 2026-10-29. Exact tested runtime bytes are preserved.
 
-## 0.3.1 — experimental, awaiting in-game verification
+## 0.3.1 — game-tested 2026-10-29, not separately released
 
 - Fix native input-device getter ownership: `GenesisPlayerController:GetNowInputControllerType()` instead of `GameGlobal`.
 - Correct the offline controller mock and assert that the native owner is exercised; the 0.3.0 mock had hidden this integration defect.
-- Contextual input behavior and accepted 0.2.0 opacity policy otherwise unchanged. Runtime success is not yet established.
+- Contextual input behavior and accepted 0.2.0 opacity policy otherwise unchanged. The repeat game test passed; separate publication was deferred in favour of 0.4.0.
 
 ## 0.3.0 — experimental, failed in-game verification (2026-10-29)
 

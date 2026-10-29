@@ -1,6 +1,6 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-**Current evidence, 2026-10-29:** 0.3.1 contextual Interact/skill reveal was visually confirmed by the user, with exact installed hashes, native pressed hook and absence of CombatHUD runtime errors independently confirmed in [CANDIDATE-0.3.1.md](CANDIDATE-0.3.1.md). The new finite partial-HP hold of 0.4.0 has passed hosted offline tests but has **no in-game acceptance yet** (see [CANDIDATE-0.4.0.md](CANDIDATE-0.4.0.md)). Historical observer01/02/03 investigations below retain their original evidence limits; their former OPEN implementation questions are historical, not a claim that 0.3.1 remains unimplemented. Crystals and optional live input remap/focus transitions remain unverified.
+**Current evidence, 2026-10-29:**0.4.0 is visually accepted and explicitly authorized for stable publication. Exact installed hashes/source, loaded0.4.0,17 targets/native pressed hook and a finite6-second injured hold followed by1-second fade are confirmed in a live log snapshot without CombatHUD errors. [Owning0.4.0 report](CANDIDATE-0.4.0.md) separates user observations from logged events and records the live-session limitation.0.3.1 contextual reveal remains game-tested and is included in0.4.0 without a separate release. Historical observer evidence retains its original limits; crystals and optional live-rebind/focus-loss remain deferred/unverified.
 
 ## Принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
