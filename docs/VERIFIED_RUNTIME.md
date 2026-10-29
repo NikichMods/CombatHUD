@@ -1,6 +1,6 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-**Contextual reveal, 2026-10-29:** bounded research completed; native held getter and skill bindings observed, full input behavior/Interact gates remain OPEN. Both probes removed, no production changes. See [Observer02 result](#observer02-result--live-held-getter-and-skill-binding-interact-open-2026-10-29).
+**Contextual reveal, 2026-10-29:** native held getter and skill bindings observed; full input behavior/Interact gates remain OPEN. Observers01/02 were removed. The authorized narrow current-binding continuation has observer03 installed, without production changes. See [current resolver investigation](#current-interact-binding--scalar-resolver-investigation-2026-10-29) and the preserved observer02 result.
 
 ## Принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
@@ -427,4 +427,40 @@ Recommended narrow continuation, **not executed here**: retain the demonstrated 
 
 ### Closed-game cleanup and stop state
 
-Observer02 was removed after matching its installed hash and checking process count0. Only its known main.lua/empty enabled.txt and empty directories were removed. All19 pre-existing loader files match the observer02 deployment snapshot, including mods.txt and both CombatHUD0.2.0 Lua files. The log, immutable observer sources and private result remain in ignored evidence. No new probe is installed, no game was launched/terminated by the agent and no hot reload was used. The research stops at the readiness assessment above; further work awaits the user's next decision.
+Observer02 was removed after matching its installed hash and checking process count0. Only its known main.lua/empty enabled.txt and empty directories were removed. All19 pre-existing loader files match the observer02 deployment snapshot, including mods.txt and both CombatHUD0.2.0 Lua files. The log, immutable observer sources and private result remain in ignored evidence. No new probe is installed, no game was launched/terminated by the agent and no hot reload was used. That bounded stage ended at the readiness assessment above. The user subsequently authorized the narrow current-Interact-binding continuation recorded below.
+
+## Current Interact binding — scalar resolver investigation, 2026-10-29
+
+**Status: static read contract selected; current-value and action-delivery proof OPEN.** The user authorized continuing only the narrow Interact/remapping investigation. Production Scripts/, VERSION0.2.0, settings and saved mappings are unchanged. Previous observers are preserved privately and removed from the loader.
+
+### New static evidence and mechanism choice
+
+A bounded primary-source lookup and exact installed-version review were performed before choosing another probe. Relevant upstream references are [UE4SS LuaUObject.cpp at8333063595fa3c49ad307f3b0f732accbb760d25](https://github.com/UE4SS-RE/RE-UE4SS/blob/8333063595fa3c49ad307f3b0f732accbb760d25/UE4SS/src/LuaType/LuaUObject.cpp) and [UE4.27 WasInputKeyJustPressed](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/GameFramework/APlayerController/WasInputKeyJustPressed?application_version=4.27). Current UE4SS docs/issues are precedent only; the83330635 source and local UHT declarations govern this baseline.
+
+- `GameGlobal:GetInputMapping(ContextType, outCommands, outButtons, outFKeys)` is a reflected candidate, but it adds three out arrays. The pinned call wrapper fills Lua out tables via GetNonTrivialLocal, while array elements are pushed with GetParam; this can leave wrappers pointing at native storage. An outer Lua table is not proof that its elements are deep-owned. The same source supports a simpler scalar path, so no array mapping getter was invoked and no unsafe TArray indexing is introduced.
+- `GameGlobal:GetKeyByVirtualKey(FName VirtualKeyName) -> FKey` is declared separately from GetDefaultInputKeyOfVirtualKey. Scalar StructProperty return conversion recursively builds a Lua table; its NameProperty is a local value-copy FName. The probe retains only that owned name inside a plain `{KeyName=...}` argument table, with no native FKey/array wrapper cache. A returned value must match the expected shape or observation stops; no default physical button is substituted. Whether the resolver returns the current stored binding and whether the reconstructed FKey suffices for actual native key getters still require live proof.
+- Native `FKeyBindingData` links Key, VirtualKey, ControllerType, GroupType, conflict list, ActionName and CanNotModify. Reused reader1.2.2 exports of the five KeyBinding tables establish these exact Interact virtual IDs: `K-Interact`, `PC-Joystick-Interact`, `DS4-Interact`, `DS5-Interact`, `X-Interact`. Each belongs to Game/Game_Normal, is modifiable and points to the UI action localization key `SystemOption.Controller.Interact`. These are semantic configuration IDs, not fixed physical keys. They match Scene/Interact rows of the already inspected default input tables.
+- The PC device namespace must not be guessed: EGenesisInputControllerType and EKeyBindingControllerType are different enums, and a PC Xbox-style device does not by itself prove that X-Interact rather than PC-Joystick-Interact is active. The probe resolves all five declared virtual IDs and logs device, input-platform and default-preset metadata. It records candidates without silently choosing an active one.
+- WasInputKeyJustPressed is a current-frame up→down query. A50/100ms timer cannot establish reliable coverage of that flag. This experiment queries both native IsInputKeyDown and WasInputKeyJustPressed in the already demonstrated OnActionInputPressed **native post-hook**, retaining pre/post input contexts. The callback is a wake-up seam, not itself an identified Interact command. Correct native timing, candidate selection, same-frame deduplication, chords and full action equivalence remain part of the evidence gate. A native getter that only reports held is not automatically a reliable press event.
+
+The exported table named Remapping proved to contain skill/projectile/attribute/VFX remapping rather than input binding; it is not used for this mechanism. No broader gameplay investigation followed.
+
+### Private observer03 and bounded runtime question
+
+Prepared private `interact-scalar-resolver-03`, Lua SHA-256 `14b4ef7d998312166857b1d78affafbab7c9331c5b11408322bd9411cd03db05`. No diagnostic source or raw export is published. Offline Lua54 safety/regression checks PASS: startup owner deferral, owned key shape, runtime-resolved key arguments, native pre/post modes, nil-return callbacks, listener fan-out deduplication, independent sample cap, explicit STOP marker and malformed resolver result containment. These mocks are not native ABI/current-binding proof.
+
+The observer uses no HUD writes and no input/configuration setter. It waits for GenesisCharacter-owned gameplay HUD, calls only the scalar resolver for the five proven virtual IDs, logs BEFORE_KEY/RESOLVED and first key-query before/after markers, and records native key flags from actual pressed callbacks. It refreshes on controller/device/preset or UI→Scene changes, with at most six resolver generations. It does not hook the undelivered NotifyActionInput again. Repetitive raw edges are counted rather than printed. Key-sample log limit64 does not disable context/resolver observation; STATE and key-sample budgets are separate. There are explicit counters/STOP markers, a180-second-after-ready observation bound and600-second absolute startup bound.
+
+After the existing authorization for a separate read-only research probe, observer03 was installed with process count0. Installed hash matched; all19 pre-existing loader files, mods.txt and both accepted CombatHUD0.2.0 files retained their hashes. Game launch/termination and hot reload were not performed. Exact deployment/baseline and source remain in ignored `.local` evidence. **Observer03 is installed and awaits the user's short current-binding test.** This is installation evidence only.
+
+Sufficient next scenario: load the normal save, wait a few seconds; press the currently assigned world Interact several times in empty space (user's current Y); if convenient perform one ordinary existing interaction; open a normal menu and confirm with the user's current A; return and exercise the current keyboard Interact once. Do not change bindings/settings for this run. Close the game normally. Compare resolved key names with the user's current preset, default-table differences and native query samples across Scene/UI. If names/namespace or native edge timing are wrong, retain that specific gap rather than accepting a guessed mapping. Then snapshot the log and remove only observer03 with closed-game baseline verification.
+
+### Evidence identity
+
+- Exact fetched upstream LuaUObject.cpp SHA-256 `cccf1e63b26fb5a2f009666cf469f19f8eaa655388be462219f3b22b19ae6a0b`. The older local copy differs only in a trailing blank line; no different implementation was adopted.
+- KeyBinding_KeyboardMouse.json SHA-256 `5b91709cf157d0e9adb543a820ea6e12cd2425b069a54ab0bd52d009eac0ef81`.
+- KeyBinding_Joystick.json SHA-256 `9991cfb5cd48e4eaffa425853f018674c05413170cf7538c18040aa34f1cd9f9`.
+- KeyBinding_XboxController.json SHA-256 `754c6289218503c90d9d7b7116e36bcd17494265323104a875f5932124d59bac`.
+- GameGlobal/PlayerController/FKey UHT declarations, the other two controller tables, exact toolchain and all raw sources remain local and are included in the private audit inputs. No game asset, setting/save data, key material or machine path is added to public Git.
+
+**READY only for the bounded resolver experiment; Interact implementation remains OPEN.** No version, candidate or release is created. The already agreed reveal behavior and deferred crystals do not change.
