@@ -1,6 +1,6 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-**Contextual reveal, 2026-10-29:** native held getter and skill bindings observed; full input behavior/Interact gates remain OPEN. Observers01/02 were removed. The authorized narrow current-binding continuation has observer03 installed, without production changes. See [current resolver investigation](#current-interact-binding--scalar-resolver-investigation-2026-10-29) and the preserved observer02 result.
+**Contextual reveal, 2026-10-29:** native held getter and skill bindings observed; full input behavior/Interact gates remain OPEN. Observers01/02 were removed. The narrow current-binding continuation demonstrated GetKeyByVirtualKey and native key-edge reads on the current PC preset; observer03 was removed, without production changes. See [observer03 result](#observer03-result--current-interact-resolver-and-native-key-queries-pass-2026-10-29) for readiness and unverified scope, plus the preserved observer02 result.
 
 ## Принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
@@ -451,7 +451,7 @@ Prepared private `interact-scalar-resolver-03`, Lua SHA-256 `14b4ef7d99831216685
 
 The observer uses no HUD writes and no input/configuration setter. It waits for GenesisCharacter-owned gameplay HUD, calls only the scalar resolver for the five proven virtual IDs, logs BEFORE_KEY/RESOLVED and first key-query before/after markers, and records native key flags from actual pressed callbacks. It refreshes on controller/device/preset or UI→Scene changes, with at most six resolver generations. It does not hook the undelivered NotifyActionInput again. Repetitive raw edges are counted rather than printed. Key-sample log limit64 does not disable context/resolver observation; STATE and key-sample budgets are separate. There are explicit counters/STOP markers, a180-second-after-ready observation bound and600-second absolute startup bound.
 
-After the existing authorization for a separate read-only research probe, observer03 was installed with process count0. Installed hash matched; all19 pre-existing loader files, mods.txt and both accepted CombatHUD0.2.0 files retained their hashes. Game launch/termination and hot reload were not performed. Exact deployment/baseline and source remain in ignored `.local` evidence. **Observer03 is installed and awaits the user's short current-binding test.** This is installation evidence only.
+After the existing authorization for a separate read-only research probe, observer03 was installed with process count0. Installed hash matched; all19 pre-existing loader files, mods.txt and both accepted CombatHUD0.2.0 files retained their hashes. Game launch/termination and hot reload were not performed. Exact deployment/baseline and source remain in ignored `.local` evidence. That installation is historical: observer03 has now completed the short current-binding test and was removed. The live result, precise readiness boundary and cleanup are recorded below.
 
 Sufficient next scenario: load the normal save, wait a few seconds; press the currently assigned world Interact several times in empty space (user's current Y); if convenient perform one ordinary existing interaction; open a normal menu and confirm with the user's current A; return and exercise the current keyboard Interact once. Do not change bindings/settings for this run. Close the game normally. Compare resolved key names with the user's current preset, default-table differences and native query samples across Scene/UI. If names/namespace or native edge timing are wrong, retain that specific gap rather than accepting a guessed mapping. Then snapshot the log and remove only observer03 with closed-game baseline verification.
 
@@ -464,3 +464,43 @@ Sufficient next scenario: load the normal save, wait a few seconds; press the cu
 - GameGlobal/PlayerController/FKey UHT declarations, the other two controller tables, exact toolchain and all raw sources remain local and are included in the private audit inputs. No game asset, setting/save data, key material or machine path is added to public Git.
 
 **READY only for the bounded resolver experiment; Interact implementation remains OPEN.** No version, candidate or release is created. The already agreed reveal behavior and deferred crystals do not change.
+
+## Observer03 result — current Interact resolver and native key queries PASS (2026-10-29)
+
+**Result: a usable remapping-aware Interact read route is demonstrated on the tested PC preset.** The user completed the short empty-space gamepad/menu-confirm/keyboard scenario and closed the game. No binding/settings changes were requested or made. Installed private observer03 matched Lua SHA-256 `14b4ef7d998312166857b1d78affafbab7c9331c5b11408322bd9411cd03db05`. Preserved session03:15:19–03:16:09 MSK, log SHA-256 `e8445de9325cc20c294454f520040b9e96902ed43e3fdddaa8f493a593862cc0`.
+
+### Actual current binding, not a default-button substitution
+
+| Virtual Interact identity | Runtime GetKeyByVirtualKey result |
+| --- | --- |
+| K-Interact | F |
+| PC-Joystick-Interact | Gamepad_FaceButton_Top (the user's reported Y) |
+| DS4-Interact | None |
+| DS5-Interact | None |
+| X-Interact | None |
+
+All three resolver generations returned the same values: initial ready gameplay; UI→Scene return at03:16:01.702; gamepad→keyboard change at03:16:03.535. Metadata reported platform0(PC), device4 then1, preset0. In particular, device4 does not select X-Interact: that virtual ID returned None while PC-Joystick-Interact returned the actual key. Use the platform/mapping namespace, not an assumed equality between controller enums.
+
+The returned Top key agrees with the user's explicitly reported current Y binding and differs from the Bottom/Right keys in the two inspected shipped PC-Joystick default tables. This supports the resolver reading the configured mapping rather than a hardcoded/default physical key. It does not establish a before/after live remapping round-trip or every platform namespace. None is an inactive/unresolved binding in this observation, not permission to substitute a default key.
+
+### Delivered key-state evidence and gameplay/UI distinction
+
+- Scalar return decoding worked: the FKey return was a plain Lua table with a local-copy KeyName. Passing the derived plain FKey argument to native IsInputKeyDown and WasInputKeyJustPressed succeeded, with before/after markers; no borrowed array/FKey wrappers were retained. The source-reviewed argument route now has live ABI evidence for this baseline.
+- At03:15:49.419, the gamepad resolved-key queries returned down=true and edge=true in native OnActionInputPressed post-hook, preMode=0/postMode=0. Seven gamepad-positive KEY_SAMPLE records are present overall. Raw listener fan-out was summarized; sample count is not asserted to equal physical user-press count.
+- At03:16:03.952 and03:16:05.335, keyboard F returned down=true/edge=true, also Scene0→Scene0. Combined with the user's empty-space scenario, this demonstrates a source that is not contingent on an available interactable actor or successful interaction execution.
+- Recorded menu-associated samples have matches=none, with native contexts0→1,1→1 and1→0. The user's A confirmations were performed as requested; the source did not report a matching current Interact key in those samples. Same-physical-key-in-UI, every menu and all native input-block states were not exercised. The future adapter must gate from the captured press context and preserve native UI hiding, rather than equating a key match with a universally allowed gameplay action.
+-22 KEY_SAMPLE records:7 gamepad-positive,2 keyboard-positive,13 none.15 resolver rows across3 generations,7 metadata STATE records and one periodic COUNTS summary. No observer STOP error/TRUNCATED or CombatHUD fail-safe is recorded. The host ends normally at03:16:09.578, after the last key sample03:16:08.819. Unlike observer02, no capture budget ended observation early; the host closed before the planned lifetime bound.
+
+### Recommended mechanism and readiness boundary
+
+Use a validated semantic virtual Interact ID to resolve the actual FKey through GetKeyByVirtualKey, retain only the copied KeyName, and observe native key-edge state from the demonstrated pressed-callback route. Require the current valid local controller/GenesisCharacter HUD and appropriate pre-press Scene/native-UI context. A raw listener Target is only a wake-up, not the Interact identity; IsInputKeyDown alone is held state, not a press trigger. No fixed Y/F/VK/XInput fallback and no need to revive the undelivered NotifyActionInput path or invoke the three-array mapping getter for this tested case.
+
+- **READY — current binding reader and scalar FKey argument ABI** on Steam1.09/build12996889/UE4SS83330635, tested PC gamepad and keyboard preset.
+- **READY for a bounded Interact-source implementation** under that contract: actual empty-space native edge queries and the observed Scene/UI separation are available. Production integration still must implement lifecycle/cache invalidation, per-press/same-frame deduplication of listener fan-out and the already agreed reveal policy, with focused offline tests and an exact new runtime candidate. These are implementation/acceptance duties, not proof that new HUD behavior already exists.
+- **Explicitly UNVERIFIED:** changing and restoring bindings within one session, chords beyond the tested single-key bindings, other platform/controller namespaces, every input-block/menu/cutscene, focus/lost-release behavior and the complete skill-only feature. Refreshing after UI exit/device change returned stable current values here; it does not prove a changed mapping was refreshed.
+
+No production changes, version bump, numbered candidate, release or further observer are created automatically. This narrow Interact-source investigation stops at the evidence/readiness conclusion; implementation requires the user's next instruction. The separate remaining skill-modifier/focus/layout questions and deferred crystals are unchanged.
+
+### Cleanup and preservation
+
+With process count0 and installed observer hash verified, only observer03's main.lua/empty enabled.txt and empty folders were removed. All19 pre-existing loader files retained their deployment hashes, including mods.txt and both accepted CombatHUD0.2.0 Lua files. Raw log, resolver source and private result are preserved outside the loader. No game launch/termination, input/settings/save changes or hot reload by the agent. **No CombatHUDContextProbe remains installed.**
