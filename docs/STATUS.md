@@ -23,9 +23,13 @@
 
 2026-10-29 пользователь принял два контекстных способа временно повысить яркость: **нажатие переназначаемого действия взаимодействия раскрывает весь HUD**, **удержание переназначаемого модификатора навыков раскрывает только панель боевых навыков**. Нажатие — разовое, с существующей задержкой 1,5 с и fade 1 с; после отпускания навыков — только fade 1 с без задержки. Не добавлять постоянный переключатель, не привязываться к фиксированным кнопкам, не вмешиваться в native меню. Полная семантика и границы записаны в [REQUIREMENTS.md](REQUIREMENTS.md).
 
+### История первого цикла: observer01/02
+
 **Ограниченный исследовательский этап завершён; production не менялся.** Observer02 подтвердил native `GetModifier_SpecialSkill()` true/false на текущем пресете, обе правые root-группы, четыре keyboard и четыре pad skill-слота и native ancestor hide в UI. Для этих read/binding контрактов есть live evidence; полное поведение удержания/focus/device reset, соответствие шести видимым иконкам и remappable Interact остаются **OPEN**. NotifyActionInput hook зарегистрировался, но ACTION записей нет;181 низкоуровневый EDGE не идентифицирует команды. Лимит240 строк обрезал наблюдение до конца сценария, поэтому focus-loss не принят. Пользователь уточнил текущие кнопки: Y — мир, A — меню; тест включал точку возрождения. Не превращать их в constants и не приписывать неименованные EDGE конкретной кнопке.
 
 Оба приватных observer сняты при закрытом host; для observer02 все19 предыдущих loader-файлов, mods.txt и CombatHUD0.2.0 совпали по хешам. Ничего нового не установлено. Source/dumps/logs остаются private/ignored, VERSION и стабильный ZIP не менялись. Точные доказательства и READY/OPEN по отдельным границам — [результат observer02](VERIFIED_RUNTIME.md#observer02-result--live-held-getter-and-skill-binding-interact-open-2026-10-29).
+
+### Текущий результат: Interact resolver, observer03
 
 **Узкое исследование текущего Interact завершено — source READY для ограниченной реализации.** Observer03 реально получил `K-Interact → F`, `PC-Joystick-Interact → Gamepad_FaceButton_Top` (текущая Y пользователя); DS4/DS5/X virtual IDs вернули None на данном PC. Native IsInputKeyDown/WasInputKeyJustPressed приняли FKey, собранный из copied KeyName, и вернули true/true в Scene на текущих gamepad/keyboard нажатиях без объекта. В записанных UI-подтверждениях совпадений Interact не было; контексты до/после native обработки разделены. Идентичные привязки перечитаны после меню и смены устройства. [Точный runtime результат](VERIFIED_RUNTIME.md#observer03-result--current-interact-resolver-and-native-key-queries-pass-2026-10-29).
 

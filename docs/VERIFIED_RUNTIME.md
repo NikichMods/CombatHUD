@@ -1,6 +1,6 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-**Contextual reveal, 2026-10-29:** native held getter and skill bindings observed; full input behavior/Interact gates remain OPEN. Observers01/02 were removed. The narrow current-binding continuation demonstrated GetKeyByVirtualKey and native key-edge reads on the current PC preset; observer03 was removed, without production changes. See [observer03 result](#observer03-result--current-interact-resolver-and-native-key-queries-pass-2026-10-29) for readiness and unverified scope, plus the preserved observer02 result.
+**Contextual reveal, 2026-10-29:** native held getter and skill bindings observed; the current-PC Interact read source is READY for bounded implementation, while the complete contextual feature is not implemented or accepted. Observers01/02 were removed. The narrow current-binding continuation demonstrated GetKeyByVirtualKey and native key-edge reads on the current PC preset; observer03 was removed, without production changes. See [observer03 result](#observer03-result--current-interact-resolver-and-native-key-queries-pass-2026-10-29) for readiness and unverified scope, plus the preserved observer02 result.
 
 ## Принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
@@ -431,7 +431,7 @@ Observer02 was removed after matching its installed hash and checking process co
 
 ## Current Interact binding — scalar resolver investigation, 2026-10-29
 
-**Status: static read contract selected; current-value and action-delivery proof OPEN.** The user authorized continuing only the narrow Interact/remapping investigation. Production Scripts/, VERSION0.2.0, settings and saved mappings are unchanged. Previous observers are preserved privately and removed from the loader.
+**Historical preparation-stage status (superseded by the Observer03 result below): static read contract selected; current-value and action-delivery proof was OPEN.** The user authorized continuing only the narrow Interact/remapping investigation. Production Scripts/, VERSION0.2.0, settings and saved mappings are unchanged. Previous observers are preserved privately and removed from the loader.
 
 ### New static evidence and mechanism choice
 
