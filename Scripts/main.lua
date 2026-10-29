@@ -1,7 +1,7 @@
 -- SPDX-License-Identifier: MPL-2.0
 local UEHelpers = require("UEHelpers")
 local Policy = require("policy")
-local config = { idleOpacity = 0.20, exitDelay = 1.5, fadeSeconds = 1.0 }
+local config = { idleOpacity = 0.20, exitDelay = 1.5, injuredExitDelay = 6.0, fadeSeconds = 1.0 }
 local state = Policy.newHealth()
 local context = Policy.newContext()
 local hud, global, ownerAddress
@@ -402,7 +402,7 @@ local function update()
     end
 end
 
-log("Loaded CombatHUD 0.3.1 contextual candidate; 0.20 idle, 1.5s hold, 1.0s fade, 50ms HP sampling")
+log("Loaded CombatHUD 0.4.0 finite-injured-HUD candidate; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, 50ms HP sampling")
 LoopAsync(50, function()
     if disabled then return true end
     if pending then return false end

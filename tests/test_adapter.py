@@ -275,4 +275,27 @@ releaseKey("Gamepad_FaceButton_Right")
 assert(not disabled, "candidate unexpectedly disabled")
 ''')
 
-print('PASS: 17 targets, HP/combat, semantic Interact, skill hold/release, UI isolation, rebind, rollback and fail-safe.')
+# End-to-end mock coverage: 6s injured hold, partial healing not refreshing it,
+# no bright flash on full healing, and restart after exiting combat wounded.
+runtime = LuaRuntime(unpack_returned_tuples=True)
+runtime.globals().policySource = (root / "policy.lua").read_text()
+runtime.execute(fixture)
+runtime.execute((root / "main.lua").read_text())
+runtime.execute('''
+tick(.05); tick(3); check(.2,.2)
+hp=90; tick(3.1); check(1,1)
+hp=95; tick(7); check(.2,1) -- partial healing does not restart the 6s clock
+tick(9.1); check(.2,1)
+tick(9.6); check(.2,.6)
+tick(10.1); check(.2,.2)
+hp=100; tick(10.2); check(.2,.2) -- full healing does not brighten a dim HUD
+hp=80; tick(11); check(1,1)
+fighting=true; tick(11.1); check(1,1)
+fighting=false; tick(12); check(1,1)
+tick(18); check(.2,1)
+tick(18.5); check(.2,.6)
+tick(19); check(.2,.2)
+assert(not disabled)
+''')
+
+print('PASS: 17 targets, finite injured hold, HP/combat, semantic Interact, skill hold/release, UI isolation, rebind, rollback and fail-safe.')

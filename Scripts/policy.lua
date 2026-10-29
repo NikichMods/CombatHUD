@@ -4,7 +4,8 @@ function M.new()
     return { quietSince = nil, alpha = 1.0 }
 end
 
-function M.step(state, now, battle, config)
+function M.step(state, now, battle, config, exitDelay)
+    local delay = exitDelay or config.exitDelay
     if type(now) ~= "number" or type(battle) ~= "boolean" then
         state.quietSince = nil
         state.alpha, state.target, state.lastTime = 1.0, nil, nil
@@ -20,7 +21,7 @@ function M.step(state, now, battle, config)
         target, mode = 1.0, "combat"
     else
         if state.quietSince == nil then state.quietSince = now end
-        if now - state.quietSince <= config.exitDelay then
+        if now - state.quietSince <= delay then
             target, mode = 1.0, "hold"
         else
             target, mode = config.idleOpacity, "idle"
@@ -28,7 +29,7 @@ function M.step(state, now, battle, config)
     end
     if target ~= state.target then
         state.target, state.from, state.started = target, state.alpha, now
-        if mode == "idle" then state.started = state.quietSince + config.exitDelay end
+        if mode == "idle" then state.started = state.quietSince + delay end
     end
     local progress = math.min(1.0, math.max(0.0, (now - state.started) / config.fadeSeconds))
     -- Smoothstep has no abrupt derivative at either end of the fade.
@@ -43,9 +44,9 @@ local function finite(value)
     return type(value) == "number" and value == value and math.abs(value) < math.huge
 end
 
--- The ordinary HUD follows combat and recent damage. The HP/item group also
--- remains bright while injured and starts its own delay when HP becomes full.
--- Both use the already-accepted fade policy, with no extra timer framework.
+-- Ordinary HUD uses the accepted combat/damage clock. HP and quick items
+-- instead stay fully bright for a bounded 6s after damage or combat exit
+-- when injured. Full healing must not unexpectedly rebrighten a dimmed bar.
 function M.newHealth()
     return { ordinary = M.new(), vital = M.new() }
 end
@@ -53,7 +54,7 @@ end
 local function resetHealth(state)
     state.ordinary, state.vital = M.new(), M.new()
     state.previousHp, state.previousMax, state.lastSampleTime = nil, nil, nil
-    state.wasInjured = nil
+    state.wasInjured, state.vitalFadeDelay = nil, nil
 end
 
 function M.stepHealth(state, now, battle, hp, maxHp, config)
@@ -76,15 +77,35 @@ function M.stepHealth(state, now, battle, hp, maxHp, config)
     if damage then
         -- Showing the HUD after damage is immediate, even during a fade.
         state.ordinary, state.vital = M.new(), M.new()
+        state.vitalFadeDelay = nil
     elseif injured and state.wasInjured == false then
         -- A newly incomplete bar is important even without a damage delta.
         state.vital = M.new()
+        state.vitalFadeDelay = nil
+    elseif not injured and state.wasInjured == true and not battle then
+        if state.vital.alpha >= 1.0 then
+            -- Keep the existing separate 1.5s hold on full healing only
+            -- while HP/items were already bright.
+            state.vital = M.new()
+            state.vitalFadeDelay = nil
+        else
+            -- If fading already started, finish that same six-second
+            -- cycle without a brightness jump or fresh healing timer.
+            state.vitalFadeDelay = config.injuredExitDelay
+        end
     end
 
     state.previousHp, state.previousMax = hp, maxHp
     state.lastSampleTime, state.wasInjured = now, injured
+    -- A new combat period supersedes an unfinished post-heal fade.
+    if battle then state.vitalFadeDelay = nil end
     local ordinary, ordinaryMode = M.step(state.ordinary, now, battle, config)
-    local vital, vitalMode = M.step(state.vital, now, battle or injured, config)
+    local vitalDelay = injured and config.injuredExitDelay or
+        (state.vitalFadeDelay or config.exitDelay)
+    local vital, vitalMode = M.step(state.vital, now, battle, config, vitalDelay)
+    if not injured and vital <= config.idleOpacity then
+        state.vitalFadeDelay = nil
+    end
     return ordinary, vital, ordinaryMode, vitalMode, damage
 end
 
