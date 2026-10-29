@@ -88,4 +88,68 @@ function M.stepHealth(state, now, battle, hp, maxHp, config)
     return ordinary, vital, ordinaryMode, vitalMode, damage
 end
 
+-- Contextual reveal is an overlay, not a second owner of the combat/HP clocks.
+-- It can be composed independently with either accepted baseline opacity.
+function M.newContext()
+    return { lastInteract = nil, lastTime = nil, skillHeld = false,
+        skillReleased = nil, skillArmed = false }
+end
+
+function M.pressInteract(state, now)
+    if finite(now) and (state.lastTime == nil or now >= state.lastTime) then
+        state.lastInteract = now
+    end
+end
+
+function M.cancelSkill(state)
+    state.skillHeld, state.skillReleased, state.skillArmed = false, nil, false
+end
+
+local function smoothDown(elapsed, duration)
+    if elapsed <= 0 then return 1 end
+    if elapsed >= duration then return 0 end
+    local p = elapsed / duration
+    return 1 - p * p * (3 - 2 * p)
+end
+
+function M.stepContext(state, now, held, eligible, config)
+    if not finite(now) or type(held) ~= "boolean" or type(eligible) ~= "boolean" then
+        state.lastInteract, state.lastTime = nil, nil
+        M.cancelSkill(state)
+        return 0, 0
+    end
+    if state.lastTime and now < state.lastTime then
+        state.lastInteract = nil
+        M.cancelSkill(state)
+    end
+    state.lastTime = now
+
+    local interact = 0
+    if state.lastInteract then
+        local elapsed = now - state.lastInteract
+        interact = smoothDown(elapsed - config.exitDelay, config.fadeSeconds)
+        if interact == 0 then state.lastInteract = nil end
+    end
+
+    local skill = 0
+    if not eligible then
+        M.cancelSkill(state)
+    elseif not held then
+        if state.skillHeld then state.skillReleased = now end
+        state.skillHeld, state.skillArmed = false, true
+        if state.skillReleased then
+            skill = smoothDown(now - state.skillReleased, config.fadeSeconds)
+            if skill == 0 then state.skillReleased = nil end
+        end
+    elseif state.skillArmed then
+        state.skillHeld, state.skillReleased = true, nil
+        skill = 1
+    end
+    return interact, skill
+end
+
+function M.overlay(base, gain)
+    return base + (1 - base) * gain
+end
+
 return M

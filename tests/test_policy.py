@@ -63,3 +63,37 @@ assert h(2,False,20,200)[:2]==(1.0,1.0)
 assert h(3,False,300,200)[:2]==(1.0,1.0)
 assert h(4,None,10,200)[:2]==(1.0,1.0)
 print('PASS: base policy, immediate damage, independent HP/item timer, partial load, heal, travel, pause, invalid getters.')
+
+# Independent contextual overlays never alter combat/HP countdowns.
+context = policy.newContext()
+def ctx(t, held=False, eligible=True): return policy.stepContext(context, t, held, eligible, cfg)
+assert ctx(10)==(0,0)
+policy.pressInteract(context,10.1)
+assert ctx(10.1)==(1,0)
+assert ctx(11.6)==(1,0)
+i,s=ctx(12.1); assert abs(i-.5)<1e-8 and s==0
+assert ctx(12.6)==(0,0)
+policy.pressInteract(context,13)
+assert ctx(13)==(1,0)
+policy.pressInteract(context,13.5)
+assert ctx(15)==(1,0)
+assert ctx(16)==(0,0)
+
+context = policy.newContext()
+assert ctx(17,True)==(0,0)   # unknown startup-held state: fail closed until release
+assert ctx(17.1,False)==(0,0)
+assert ctx(17.2,True)==(0,1)
+assert ctx(20,True)==(0,1)
+assert ctx(20.1,False)==(0,1)
+i,s=ctx(20.6); assert i==0 and abs(s-.5)<1e-8
+assert ctx(21.1)==(0,0)
+assert ctx(22,True)==(0,1)
+assert ctx(22.1,True,False)==(0,0) # menu cancels and disarms
+assert ctx(22.2,True)==(0,0)       # stale held after UI exit cannot flash
+assert ctx(22.3,False)==(0,0)
+assert ctx(22.4,True)==(0,1)
+assert ctx(0)==(0,0)                 # changed world/game-time generation resets
+assert policy.overlay(.2,0)==.2
+assert policy.overlay(.2,1)==1
+assert abs(policy.overlay(.4,.5)-.7)<1e-8
+print('PASS: semantic Interact overlay, skill-only held/release fade, menu disarm, clock reset.')
