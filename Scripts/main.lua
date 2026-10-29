@@ -1,12 +1,15 @@
 -- SPDX-License-Identifier: MPL-2.0
 local UEHelpers = require("UEHelpers")
 local Policy = require("policy")
-local config = { idleOpacity = 0.20, exitDelay = 1.5, fadeSeconds = 1.0 }
+local config = { idleOpacity = 0.20, exitDelay = 1.5, injuredExitDelay = 6.0, fadeSeconds = 1.0 }
 local state = Policy.newHealth()
+local context = Policy.newContext()
 local hud, global, ownerAddress
 local entries = {}
 local pending, disabled = false, false
 local tickCount, lastMode, lastDamageLog = 19, nil, nil
+local input = { controller = nil, keys = {}, pre = {}, hook = false,
+    hookFailed = false, edgeFailed = false, lastDevice = nil, lastMode = nil, lastPress = nil }
 
 local function log(message)
     print("[AsterigosCombatHUD] " .. message .. "\n")
@@ -72,6 +75,9 @@ end
 local function release(reason)
     if not restore() then disabled = true end
     entries, ownerAddress, state, lastMode, lastDamageLog = {}, nil, Policy.newHealth(), nil, nil
+    context = Policy.newContext()
+    input.controller, input.keys, input.pre = nil, {}, {}
+    input.lastDevice, input.lastMode, input.lastPress = nil, nil, nil
     if reason then log("HUD released: " .. reason) end
 end
 
@@ -91,6 +97,7 @@ local function add(label, object, vital)
     assert(finite(original) and original >= 0 and original <= 1, "invalid opacity: " .. label)
     entries[#entries + 1] = {
         label = label, object = object, original = original, vital = vital,
+        skill = label == "right.HUDSkillUMG_BP" or label == "right.HUDActiveSkillUMG_BP",
         -- This branch was native-hidden in the experiment. Never pin its alpha to zero.
         deferred = label == "items.CrystalList_Panel" and near(original, 0)
     }
@@ -147,7 +154,7 @@ local function bind()
     log("Bound 17 independent HUD targets; keyboard crystals remain native-hidden until available")
 end
 
-local function apply(ordinary, vital)
+local function apply(ordinary, vital, skill)
     -- Read and validate all managed values before any write. Native changes never
     -- become the basis for a forced overwrite in this tick.
     local writes = {}
@@ -166,7 +173,7 @@ local function apply(ordinary, vital)
         end
         local expectedPrevious = entry.last or entry.original
         assert(near(current, expectedPrevious), "native opacity writer conflict: " .. entry.label)
-        local factor = entry.vital and vital or ordinary
+        local factor = entry.vital and vital or (entry.skill and skill or ordinary)
         local desired = entry.original * factor
         if not near(current, desired) then
             writes[#writes + 1] = { entry = entry, value = desired }
@@ -221,6 +228,129 @@ local function refresh()
     end
 end
 
+-- Observe the current game's virtual-action mappings. An input callback is only
+-- a wake-up; it is never interpreted as Interact without the native key edge.
+local interactIds = { "K-Interact", "PC-Joystick-Interact" }
+local function readBindings()
+    local resolved = {}
+    for _, virtualId in ipairs(interactIds) do
+        local key = global:GetKeyByVirtualKey(FName(virtualId))
+        assert(type(key) == "table" and key.KeyName ~= nil, "invalid FKey from " .. virtualId)
+        local value = key.KeyName:ToString()
+        assert(type(value) == "string", "invalid FKey name for " .. virtualId)
+        if value ~= "None" and value ~= "" then resolved[#resolved + 1] = value end
+    end
+    input.keys = resolved -- strings only: no borrowed native FKey or array wrappers
+end
+
+local function nativeScene()
+    if not valid(global) or not valid(hud) then return false end
+    if global:GetInputMode(true, false) ~= 0 then return false end
+    local left = hud.LeftBottom_Panel
+    if not valid(left) then return false end
+    local ancestor = left:GetParent()
+    if not derived(ancestor, "PanelWidget") then return false end
+    local visibility = ancestor:GetVisibility()
+    return visibility ~= 1 and visibility ~= 2
+end
+
+local function listenerKey(contextParam, targetParam)
+    local controller = contextParam and contextParam:get()
+    local target = targetParam and targetParam:get()
+    if not valid(controller) or not valid(target) then return nil end
+    if address(controller) ~= address(input.controller) then return nil end
+    return address(target)
+end
+
+local function beforePress(contextParam, targetParam)
+    if disabled or input.edgeFailed then return end
+    local ok, err = pcall(function()
+        local key = listenerKey(contextParam, targetParam)
+        if key then input.pre[key] = nativeScene() end
+    end)
+    if not ok then
+        input.edgeFailed = true
+        log("Interact observer disabled: pre-callback " .. tostring(err))
+    end
+end
+
+local function afterPress(contextParam, targetParam)
+    if disabled or input.edgeFailed then return end
+    local ok, err = pcall(function()
+        local key = listenerKey(contextParam, targetParam)
+        if not key then return end
+        local wasScene = input.pre[key]
+        input.pre[key] = nil
+        if not wasScene or not nativeScene() then return end
+        for _, nameOfKey in ipairs(input.keys) do
+            local nativeKey = { KeyName = FName(nameOfKey) }
+            if input.controller:IsInputKeyDown(nativeKey) and
+               input.controller:WasInputKeyJustPressed(nativeKey) then
+                local now = UEHelpers.GetGameplayStatics():GetTimeSeconds(hud)
+                if finite(now) and now ~= input.lastPress then
+                    input.lastPress = now -- once per game frame despite listener fan-out
+                    Policy.pressInteract(context, now)
+                end
+                return
+            end
+        end
+    end)
+    if not ok then
+        input.edgeFailed = true
+        log("Interact observer disabled: post-callback " .. tostring(err))
+    end
+end
+
+local function installInputHook()
+    if input.hook or input.hookFailed then return end
+    local path = "/Script/Genesis.GenesisPlayerController:OnActionInputPressed"
+    if not valid(StaticFindObject(path)) then return end
+    local ok, pre, post = pcall(RegisterHook, path, beforePress, afterPress)
+    if ok and type(pre) == "number" and type(post) == "number" then
+        input.hook = true
+    else
+        input.hookFailed = true
+        log("Interact observer unavailable: native hook not registered; automatic HUD remains active")
+    end
+end
+
+local function contextualInput()
+    local controller = hud:GetOwningPlayer()
+    if not derived(controller, "GenesisPlayerController") then
+        input.controller, input.keys = nil, {}
+        Policy.cancelSkill(context)
+        return false, false
+    end
+    local ownerChanged = address(controller) ~= address(input.controller)
+    if ownerChanged then
+        input.controller, input.pre = controller, {}
+        input.lastDevice, input.lastMode = nil, nil
+        input.lastPress = nil
+        Policy.cancelSkill(context)
+    end
+    local mode = global:GetInputMode(true, false)
+    local scene = mode == 0 and nativeScene()
+    local device = controller:GetNowInputControllerType()
+    if ownerChanged or device ~= input.lastDevice or mode ~= input.lastMode then
+        input.lastDevice, input.lastMode = device, mode
+        input.pre = {}
+        if scene and not input.edgeFailed then
+            local ok, err = pcall(readBindings)
+            if not ok then
+                input.keys = {}
+                log("Interact bindings unavailable for this input context: " .. tostring(err))
+            end
+        end
+    end
+    if not scene then
+        context.lastInteract = nil -- native UI state always wins over manual reveal
+        Policy.cancelSkill(context)
+        return false, false
+    end
+    installInputHook()
+    return true, controller:GetModifier_SpecialSkill()
+end
+
 local function update()
     if disabled then return end
     tickCount = tickCount + 1
@@ -251,7 +381,17 @@ local function update()
     local now = UEHelpers.GetGameplayStatics():GetTimeSeconds(hud)
     local ordinary, vital, ordinaryMode, vitalMode, damage = Policy.stepHealth(state, now, battle, hp, maxHp, config)
     if ordinaryMode == "unknown" then error("invalid time, battle or HP getter value") end
-    apply(ordinary, vital)
+    local eligible, held = false, false
+    local inputOk, inputErr = pcall(function() eligible, held = contextualInput() end)
+    if not inputOk then
+        input.keys = {}
+        Policy.cancelSkill(context)
+        if not input.edgeFailed then log("Contextual input unavailable: " .. tostring(inputErr)) end
+        input.edgeFailed = true -- preserve accepted automatic behavior
+    end
+    local generalGain, skillGain = Policy.stepContext(context, now, held, eligible, config)
+    apply(Policy.overlay(ordinary, generalGain), Policy.overlay(vital, generalGain),
+        Policy.overlay(ordinary, math.max(generalGain, skillGain)))
     local mode = ordinaryMode .. "/" .. vitalMode
     local logDamage = damage and (lastDamageLog == nil or now - lastDamageLog >= 2 or now < lastDamageLog)
     if mode ~= lastMode or logDamage then
@@ -262,7 +402,7 @@ local function update()
     end
 end
 
-log("Loaded CombatHUD 0.2.0 HP-aware candidate; 0.20 idle, 1.5s hold, 1.0s fade, 50ms HP sampling")
+log("Loaded CombatHUD 0.4.0 finite-injured-HUD candidate; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, 50ms HP sampling")
 LoopAsync(50, function()
     if disabled then return true end
     if pending then return false end

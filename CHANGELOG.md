@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.4.0 — 2026-10-29
+
+- HP and all three quick-item slots dim after a finite six-second hold following detected damage or combat exit while injured, even when HP remains incomplete; the accepted 1-second fade remains.
+- Partial healing does not prolong the hold; full healing keeps its existing brief hold only while these elements are still bright, without a flash if already fading/dim.
+- Combat, other HUD timers, contextual Interact / skill-modifier reveal, native menu ownership and error containment remain unchanged.
+- Includes the game-tested Interact reveal and skill-modifier overlay from 0.3.1. Press Interact for a 1.5-second hold plus 1-second fade; release the skill modifier for a 1-second skill-only fade.
+- User accepted 0.4.0 in game and explicitly authorized stable publication on 2026-10-29. Exact tested runtime bytes are preserved.
+
+## 0.3.1 — game-tested 2026-10-29, not separately released
+
+- Fix native input-device getter ownership: `GenesisPlayerController:GetNowInputControllerType()` instead of `GameGlobal`.
+- Correct the offline controller mock and assert that the native owner is exercised; the 0.3.0 mock had hidden this integration defect.
+- Contextual input behavior and accepted 0.2.0 opacity policy otherwise unchanged. The repeat game test passed; separate publication was deferred in favour of 0.4.0.
+
+## 0.3.0 — experimental, failed in-game verification (2026-10-29)
+
+- Pressing the currently mapped world Interact action temporarily reveals the managed HUD, even without a nearby object on the verified PC input path.
+- Holding the native skill selector reveals only the two right skill groups; releasing fades them for one second without an additional hold.
+- Native game/UI visibility remains authoritative. The accepted combat, damage, partial-HP and item behavior is preserved.
+- Offline coverage added, but live testing proved both contextual features were blocked by a wrong native method owner. This exact installed candidate remains rejected and immutable.
+
 ## 0.2.0 — 2026-10-27
 
 - Taking damage reveals the lower HUD immediately, including outside combat.
