@@ -330,7 +330,7 @@ local function contextualInput()
     end
     local mode = global:GetInputMode(true, false)
     local scene = mode == 0 and nativeScene()
-    local device = global:GetNowInputControllerType()
+    local device = controller:GetNowInputControllerType()
     if ownerChanged or device ~= input.lastDevice or mode ~= input.lastMode then
         input.lastDevice, input.lastMode = device, mode
         input.pre = {}
@@ -402,7 +402,7 @@ local function update()
     end
 end
 
-log("Loaded CombatHUD 0.3.0 contextual candidate; 0.20 idle, 1.5s hold, 1.0s fade, 50ms HP sampling")
+log("Loaded CombatHUD 0.3.1 contextual candidate; 0.20 idle, 1.5s hold, 1.0s fade, 50ms HP sampling")
 LoopAsync(50, function()
     if disabled then return true end
     if pending then return false end

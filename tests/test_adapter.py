@@ -12,6 +12,7 @@ fixture = '''
 package.preload.policy = function() return assert(load(policySource))() end
 now, fighting, hp, maxHp, getterCalls = 0, false, 100, 100, 0
 skillHeld, inputMode, inputDevice = false, 0, 4
+deviceGetterCalls = 0
 keysDown, keysEdge, keyMap = {}, {}, {
     ["K-Interact"] = "F", ["PC-Joystick-Interact"] = "Gamepad_FaceButton_Top" }
 wrongPawn, rejectGetters = false, false
@@ -55,11 +56,18 @@ player = mock(hildaClass, "hilda")
 controller = mock(controllerClass, "controller")
 listener = mock(widget, "listener")
 controller.GetModifier_SpecialSkill = function() return skillHeld end
+controller.GetNowInputControllerType = function(self)
+    assert(self == controller, "input controller getter called on foreign owner")
+    deviceGetterCalls = deviceGetterCalls + 1
+    return inputDevice
+end
 controller.IsInputKeyDown = function(self, key) return keysDown[key.KeyName] == true end
 controller.WasInputKeyJustPressed = function(self, key) return keysEdge[key.KeyName] == true end
 getters = mock(cls("GameGlobal"), "global")
 getters.GetInputMode = function() return inputMode end
-getters.GetNowInputControllerType = function() return inputDevice end
+getters.GetNowInputControllerType = function()
+    error("GetNowInputControllerType belongs to GenesisPlayerController, not GameGlobal")
+end
 getters.GetKeyByVirtualKey = function(self, virtualId)
     return {KeyName={ToString=function() return keyMap[virtualId] or "None" end}}
 end
@@ -240,6 +248,7 @@ runtime.execute(fixture)
 runtime.execute((root / "main.lua").read_text())
 runtime.execute('''
 tick(.05); tick(3); check(.2,.2)
+assert(deviceGetterCalls >= 2, "controller-owned device getter was not exercised")
 press("Gamepad_FaceButton_Top"); tick(3.05); check(1,1)
 releaseKey("Gamepad_FaceButton_Top")
 tick(4.5); check(1,1)

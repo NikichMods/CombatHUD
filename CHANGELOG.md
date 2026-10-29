@@ -1,11 +1,17 @@
 # Changelog
 
-## 0.3.0 — experimental, not yet accepted
+## 0.3.1 — experimental, awaiting in-game verification
+
+- Fix native input-device getter ownership: `GenesisPlayerController:GetNowInputControllerType()` instead of `GameGlobal`.
+- Correct the offline controller mock and assert that the native owner is exercised; the 0.3.0 mock had hidden this integration defect.
+- Contextual input behavior and accepted 0.2.0 opacity policy otherwise unchanged. Runtime success is not yet established.
+
+## 0.3.0 — experimental, failed in-game verification (2026-10-29)
 
 - Pressing the currently mapped world Interact action temporarily reveals the managed HUD, even without a nearby object on the verified PC input path.
 - Holding the native skill selector reveals only the two right skill groups; releasing fades them for one second without an additional hold.
 - Native game/UI visibility remains authoritative. The accepted combat, damage, partial-HP and item behavior is preserved.
-- Offline coverage added; actual input hooks, remapping, focus changes and controller presentation require in-game verification before promotion.
+- Offline coverage added, but live testing proved both contextual features were blocked by a wrong native method owner. This exact installed candidate remains rejected and immutable.
 
 ## 0.2.0 — 2026-10-27
 
