@@ -1,5 +1,12 @@
 # Текущее состояние CombatHUD
 
+**Разработка 2026-10-30:** отдельный кандидат **0.4.1** в
+`fix/safe-game-thread-scheduler` заменяет async producer одним GameThread timer.
+Policy и принятое поведение 0.4.0 сохранены. Это профилактическое снижение риска,
+не доказанное исправление вылета HildaSoftLight. [Контракт и readiness](SCHEDULER_READINESS.md).
+Точная идентичность, проверки, установка и следующий игровой gate принадлежат
+[протоколу 0.4.1](CANDIDATE-0.4.1.md). Игровая приёмка и стабильное продвижение не выполнены.
+
 **Принятая стабильная версия — 0.4.0 (2026-10-29).** Пользователь подтвердил ожидаемое поведение в игровом прогоне и явно разрешил main и стабильный выпуск. [GitHub Release0.4.0](https://github.com/NikichMods/CombatHUD/releases/tag/CombatHUD-v0.4.0) опубликован; ZIP и SHA-256 повторно скачаны без авторизации и побайтно проверены. PR#2 слит в main (`57bfa51e507c44c313f564ab9f8153f6ee765f9c`), тег `CombatHUD-v0.4.0` указывает на этот integration commit; Lua/VERSION совпадают с принятым production source. [Полная запись](CANDIDATE-0.4.0.md).
 
 Точный production source commit: `56631469ec8888f41bc82f0d5d02684aa44c0e9b`. Три Lua/VERSION хеша совпали с замороженным кандидатом и установленной копией. Повторные локальные тесты PASS; hosted offline gate [40850518603](https://github.com/NikichMods/CombatHUD/actions/runs/40850518603) завершён успешно на точном source-коммите.

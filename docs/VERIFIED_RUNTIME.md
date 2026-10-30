@@ -1,5 +1,11 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
+**Scheduler source/static review, 2026-10-30:** pinned UE4SS83330635 delayed-loop
+registration, rearm and handle cancellation checked; installed DLL hash/API strings
+match the recorded baseline. [Exact contract and upstream limits](SCHEDULER_READINESS.md).
+This is not new timer runtime evidence or a native-crash fix. Candidate 0.4.1
+requires its own [game-test/identity record](CANDIDATE-0.4.1.md); 0.4.0 remains stable.
+
 **Current evidence, 2026-10-29:**0.4.0 is visually accepted and explicitly authorized for stable publication. Exact installed hashes/source, loaded0.4.0,17 targets/native pressed hook and a finite6-second injured hold followed by1-second fade are confirmed in a live log snapshot without CombatHUD errors. [Owning0.4.0 report](CANDIDATE-0.4.0.md) separates user observations from logged events and records the live-session limitation.0.3.1 contextual reveal remains game-tested and is included in0.4.0 without a separate release. Historical observer evidence retains its original limits; crystals and optional live-rebind/focus-loss remain deferred/unverified.
 
 ## История: принятая стабильная 0.2.0 — runtime PASS, 2026-10-27

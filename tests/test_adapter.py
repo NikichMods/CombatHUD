@@ -9,6 +9,8 @@ assert f"Loaded CombatHUD {(project / 'VERSION').read_text().strip()}" in (root 
 lua = LuaRuntime(unpack_returned_tuples=True)
 lua.globals().policySource = (root / "policy.lua").read_text()
 fixture = '''
+logs = {}
+function print(message) logs[#logs + 1] = message end
 package.preload.policy = function() return assert(load(policySource))() end
 now, fighting, hp, maxHp, getterCalls = 0, false, 100, 100, 0
 skillHeld, inputMode, inputDevice = false, 0, 4
@@ -48,7 +50,10 @@ local function mock(class, label, parent, alpha)
     o.GetChildrenCount = function() return #o.kids end
     o.GetChildAt = function(self, index) return o.kids[index + 1] end
     o.GetRenderOpacity = function() return o.alpha end
-    o.SetRenderOpacity = function(self, alpha) o.alpha = alpha; o.writes = (o.writes or 0) + 1 end
+    o.SetRenderOpacity = function(self, alpha)
+        assert(not timer or timer.status ~= "removed", "Widget write after timer cancellation")
+        o.alpha = alpha; o.writes = (o.writes or 0) + 1
+    end
     o.GetVisibility = function() return o.visibility end
     return o
 end
@@ -131,18 +136,53 @@ function StaticFindObject(path)
     if method then return functionObject(method) end
     return getters
 end
-function LoopAsync(ms, fn) assert(ms == 50); callback = fn end
+-- Contract model of LuaMod.cpp 3949-4090 / 4716-4792 / 5115-5159 at
+-- 83330635. Delivery is driven explicitly: this does not emulate engine threads.
+registrations, cancellations, deliveries, wallMs = 0, 0, 0, 0
+function LoopInGameThreadWithDelay(ms, fn)
+    registrations = registrations + 1
+    if registrationError then error("registration rejected") end
+    assert(not timer, "more than one recurring timer")
+    timer = {handle=41, interval=ms, fn=fn, status="active", due=wallMs+ms}
+    callback = fn -- retained only for fault injection after a failed cancellation
+    return timer.handle
+end
+function CancelDelayedAction(handle)
+    cancellations = cancellations + 1
+    assert(timer and handle == timer.handle, "wrong cancellation handle")
+    if cancellationError then error("cancellation rejected") end
+    if cancellationFalse then return false end
+    if timer.status == "removed" then return false end
+    timer.status = "removed"
+    return true
+end
+function deliver()
+    if not timer or timer.status ~= "active" then return end
+    timer.status = "executing"
+    deliveries = deliveries + 1
+    timer.fn() -- return value deliberately ignored by the real API
+    if timer.status ~= "removed" then
+        timer.status, timer.due = "active", wallMs + timer.interval
+    end
+end
+function advance(ms)
+    wallMs = ms
+    if timer and wallMs >= timer.due then deliver() end
+end
+function LoopAsync() error("async scheduling forbidden") end
 function RegisterHook(path, before, after)
     assert(path:match("OnActionInputPressed$"))
     onPressBefore, onPressAfter = before, after
     return 1,2
 end
 function FName(value) return value end
-function ExecuteInGameThread(fn) fn() end
+function ExecuteInGameThread() error("secondary update dispatch forbidden") end
 package.preload.UEHelpers = function()
     return {GetGameplayStatics = function() return {GetTimeSeconds = function() return now end} end}
 end
-function tick(t) now=t; callback() end
+-- Existing adapter scenarios explicitly deliver one callback with a chosen
+-- gameplay timestamp. Separate cadence assertions below use advance(wallMs).
+function tick(t) now=t; deliver() end
 function press(key)
     assert(onPressBefore and onPressAfter, "native key observer hook missing")
     keysDown[key], keysEdge[key] = true, true
@@ -212,7 +252,7 @@ tick(15.9)
 assert(nearly(pad.alpha,.7), "native value overwritten after conflict")
 assert(nearly(quick.alpha,1), "owned vital group not restored")
 for _,child in ipairs(statusMain.kids) do assert(nearly(child.alpha,1), "owned status not restored") end
-assert(callback()==true, "mod should stop after unexpected native writer")
+assert(timer.status=="removed" and cancellations==1, "mod should cancel after native writer conflict")
 ''')
 
 runtime = LuaRuntime(unpack_returned_tuples=True)
@@ -224,7 +264,7 @@ tick(.05); tick(3); check(.2,.2)
 -- A native getter failure after dimming cannot leave stale opacity behind.
 rejectGetters=true; tick(3.1)
 check(1,1)
-assert(callback()==true, "getter error should disable the candidate")
+assert(timer.status=="removed" and cancellations==1, "getter error should cancel the timer")
 assert(getterCalls >= 2)
 ''')
 
@@ -236,7 +276,7 @@ runtime.execute('''
 tick(.05); tick(3); check(.2,.2)
 hud.visible=false; tick(3.1) -- HUD switched/removed while dimmed
 check(1,1)
-assert(callback()==false, "HUD disappearance should wait for a new owner, not disable")
+assert(timer.status=="active" and cancellations==0, "HUD disappearance should wait for a new owner")
 hud.visible=true; for _=1,20 do tick(4.2) end -- bounded next discovery pass
 check(1,1)
 assert(getterCalls >= 2)
@@ -299,3 +339,95 @@ assert(not disabled)
 ''')
 
 print('PASS: 17 targets, finite injured hold, HP/combat, semantic Interact, skill hold/release, UI isolation, rebind, rollback and fail-safe.')
+
+
+def scheduler_case(setup, assertions):
+    runtime = LuaRuntime(unpack_returned_tuples=True)
+    runtime.globals().policySource = (root / "policy.lua").read_text()
+    runtime.execute(fixture)
+    runtime.execute(setup)
+    runtime.execute((root / "main.lua").read_text())
+    runtime.execute(assertions)
+
+
+scheduler_case('', '''
+assert(registrations==1 and timer.interval==50 and timer.handle==41)
+advance(49); assert(deliveries==0 and getterCalls==0)
+now=.05; advance(50); assert(deliveries==1 and getterCalls==1)
+advance(99); assert(deliveries==1)
+now=.1; advance(100); assert(deliveries==2 and getterCalls==2)
+-- A slow callback cannot re-enter this timer; rearm follows completion.
+local original = getters.GetHP
+getters.GetHP = function(...)
+    local before=deliveries
+    advance(250)
+    assert(deliveries==before, "timer re-entered its executing callback")
+    return original(...)
+end
+now=.15; advance(150)
+assert(deliveries==3 and getterCalls==3 and timer.due==300)
+advance(299); assert(deliveries==3)
+getters.GetHP=original
+advance(10000); assert(deliveries==4 and timer.due==10050, "overdue callbacks accumulated")
+assert(registrations==1 and cancellations==0)
+-- Game-time pause must keep opacity unchanged even while delivery continues.
+tick(3); check(.2,.2)
+advance(11000); check(.2,.2)
+rejectGetters=true; tick(3.1); check(1,1)
+assert(cancellations==1 and timer.status=="removed")
+local calls, count = getterCalls, deliveries
+advance(20000); tick(4)
+assert(getterCalls==calls and deliveries==count and cancellations==1)
+''')
+
+for setup in ('registrationError=true', 'LoopInGameThreadWithDelay=nil', 'CancelDelayedAction=nil'):
+    scheduler_case(setup, '''
+assert(not timer and getterCalls==0 and not onPressBefore)
+assert(#logs==2 and logs[2]:match("Scheduler"), "missing startup failure diagnostic")
+advance(10000); assert(deliveries==0 and cancellations==0)
+''')
+
+scheduler_case('LoopInGameThreadWithDelay=function() return nil end', '''
+assert(not timer and logs[2]:match("registration failed"))
+''')
+
+for setup in ('cancellationError=true', 'cancellationFalse=true'):
+    scheduler_case(setup, '''
+tick(.05); tick(3); check(.2,.2)
+rejectGetters=true; tick(3.1); check(1,1)
+assert(cancellations==1 and timer.status=="active")
+local calls, lines=getterCalls, #logs
+assert(logs[lines]:match("cancellation failed"))
+tick(4); tick(5); callback()
+assert(getterCalls==calls and #logs==lines and cancellations==1, "disabled callback repeated work/errors")
+press("F"); assert(getterCalls==calls, "input observer remained active after disable")
+''')
+
+scheduler_case('', '''
+tick(.05); tick(3); check(.2,.2)
+-- Restoration itself can throw outside its per-write pcall (IsValid).
+status.HPBar.IsValid=function() error("expired wrapper") end
+rejectGetters=true
+tick(3.1)
+assert(timer.status=="removed" and cancellations==1)
+local lines=#logs
+assert(table.concat(logs):match("restore incomplete"))
+tick(4); assert(#logs==lines, "restore exception was retried")
+''')
+
+scheduler_case('', '''
+tick(.05); tick(3); check(.2,.2)
+-- release() reports a non-throwing restore failure; it must also stop the timer.
+pad.alpha=.7; player.id=player.id+1000
+local calls=getterCalls
+tick(3.1)
+assert(timer.status=="removed" and cancellations==1)
+assert(nearly(pad.alpha,.7) and nearly(quick.alpha,1))
+assert(getterCalls==calls, "failed release continued binding/updating")
+''')
+
+source = (root / "main.lua").read_text()
+assert "LoopAsync" not in source and "ExecuteInGameThread" not in source
+assert "local pending" not in source and "if pending then" not in source
+assert source.count("pcall(LoopInGameThreadWithDelay, 50,") == 1
+print('PASS: single 50ms GameThread timer, explicit handle cancellation, no catch-up/reentry in contract model, registration/cancel/restore failures, inert observers and stopped delivery.')
