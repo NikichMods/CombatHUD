@@ -6,7 +6,7 @@ local state = Policy.newHealth()
 local context = Policy.newContext()
 local hud, global, ownerAddress
 local entries = {}
-local pending, disabled = false, false
+local disabled, timerHandle = false, nil
 local tickCount, lastMode, lastDamageLog = 19, nil, nil
 local input = { controller = nil, keys = {}, pre = {}, hook = false,
     hookFailed = false, edgeFailed = false, lastDevice = nil, lastMode = nil, lastPress = nil }
@@ -355,7 +355,7 @@ local function update()
     if disabled then return end
     tickCount = tickCount + 1
     if tickCount >= 20 then tickCount = 0; refresh() end
-    if not valid(hud) then return end
+    if disabled or not valid(hud) then return end
     if not hud:IsInViewport() then
         release("HUD left viewport")
         hud = nil
@@ -372,6 +372,7 @@ local function update()
     end
     if address(character) ~= ownerAddress then
         release("player changed")
+        if disabled then return end
         ownerAddress = address(character)
         bind()
         log("Validated player=" .. character:GetFullName())
@@ -402,26 +403,46 @@ local function update()
     end
 end
 
-log("Loaded CombatHUD 0.4.0 finite-injured-HUD candidate; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, 50ms HP sampling")
-LoopAsync(50, function()
-    if disabled then return true end
-    if pending then return false end
-    pending = true
-    local queued, queueError = pcall(ExecuteInGameThread, function()
-        local ok, err = pcall(update)
-        if not ok then
-            log("Fail-safe disable: " .. tostring(err))
-            restore()
-            disabled = true
+local function disable(reason, cleanup)
+    -- Make the timer and input observers inert before attempting fallible cleanup.
+    disabled = true
+    pcall(log, reason)
+    if cleanup then
+        local ok, clean = pcall(restore)
+        if not ok or not clean then
+            pcall(log, "Fail-safe restore incomplete: " .. tostring(clean))
         end
-        pending = false
-    end)
-    if not queued then
-        log("Scheduler fail-safe disable: " .. tostring(queueError))
-        -- Never call Widget APIs from the asynchronous worker thread.
-        -- Retry cleanup through the game-thread dispatcher if it is available.
-        pcall(ExecuteInGameThread, function() restore() end)
-        disabled, pending = true, false
     end
-    return false
-end)
+    local handle = timerHandle
+    timerHandle = nil -- one cancellation attempt, including when cancellation fails
+    if handle ~= nil then
+        -- UE4SS 83330635 retains vector indices across callback execution.
+        -- Finish all Widget/UFunction calls BEFORE marking this action for removal:
+        -- nested ProcessEvent cleanup must not shift that vector during restore.
+        local ok, cancelled = pcall(CancelDelayedAction, handle)
+        if not ok or cancelled ~= true then
+            pcall(log, "Scheduler cancellation failed; callback remains inert: " .. tostring(cancelled))
+        end
+    end
+end
+
+log("Loaded CombatHUD 0.4.1 safe-game-thread candidate; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, nominal 50ms HP sampling")
+if type(LoopInGameThreadWithDelay) ~= "function" or type(CancelDelayedAction) ~= "function" then
+    disable("Scheduler unavailable: GameThread delayed-action API required; HUD unchanged", false)
+else
+    local ok, handle = pcall(LoopInGameThreadWithDelay, 50, function()
+        if disabled then return end
+        local updated, err = pcall(update)
+        if not updated then
+            disable("Fail-safe disable: " .. tostring(err), true)
+        elseif disabled then
+            disable("Fail-safe disable: HUD release could not restore all targets", false)
+        end
+        -- No return-value cancellation: the API ignores callback results.
+    end)
+    if ok and math.type(handle) == "integer" and handle >= 0 then
+        timerHandle = handle
+    else
+        disable("Scheduler registration failed; HUD unchanged: " .. tostring(handle), false)
+    end
+end

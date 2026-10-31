@@ -1,6 +1,18 @@
 # Verified runtime — CombatHUD, Steam 1.09/build12996889
 
-**Current evidence, 2026-10-29:**0.4.0 is visually accepted and explicitly authorized for stable publication. Exact installed hashes/source, loaded0.4.0,17 targets/native pressed hook and a finite6-second injured hold followed by1-second fade are confirmed in a live log snapshot without CombatHUD errors. [Owning0.4.0 report](CANDIDATE-0.4.0.md) separates user observations from logged events and records the live-session limitation.0.3.1 contextual reveal remains game-tested and is included in0.4.0 without a separate release. Historical observer evidence retains its original limits; crystals and optional live-rebind/focus-loss remain deferred/unverified.
+**Current stable0.4.1, accepted2026-10-31:** user reports the complete supplied
+scenario passed and authorizes main/stable promotion conditional on a clean log.
+Exact installed/frozen hashes match source7547dcbc7b0e913f7a92741ed99a022e2c00bf37.
+Completed session log contains0.4.1 startup,17 targets, native pressed hook,
+combat/damage and finite6s injured hold/fade, with no CombatHUD failures or global
+error/exception markers. Event loop end is present. [Exact evidence](CANDIDATE-0.4.1.md).
+
+The delayed timer now has bounded real-game execution evidence. Exact cadence,
+universal lifecycle/native-crash safety and all possible game states are not
+proved by this session. [Pinned source/upstream limits](SCHEDULER_READINESS.md)
+remain applicable; crystals/live rebinding/focus-loss remain deferred. The0.4.0
+policy and contextual behavior are unchanged; its prior acceptance remains in
+[the historical record](CANDIDATE-0.4.0.md).
 
 ## История: принятая стабильная 0.2.0 — runtime PASS, 2026-10-27
 
