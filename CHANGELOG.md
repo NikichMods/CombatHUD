@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-10-31
+
+- Replace the async HUD polling producer with one repeating GameThread timer and explicit handle cancellation.
+- Contain update, restoration and scheduler failures without async fallback or repeated error spam.
+- Preserve all accepted 0.4.0 visibility rules, game-time clocks, targets and input observers.
+- User scenario passed; exact installed payload and completed session log verified. This is preventive risk reduction, not a proven native-crash fix.
+
 ## 0.4.0 — 2026-10-29
 
 - HP and all three quick-item slots dim after a finite six-second hold following detected damage or combat exit while injured, even when HP remains incomplete; the accepted 1-second fade remains.

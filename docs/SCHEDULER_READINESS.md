@@ -1,5 +1,9 @@
 # GameThread scheduler — evidence and readiness, 2026-10-30
 
+Current outcome:0.4.1 passed the user scenario and completed-session log review
+on2026-10-31; [acceptance and release identity](CANDIDATE-0.4.1.md). The gate below
+records pre-implementation evidence; upstream limitations remain in force.
+
 Scope: preventive reduction of concurrent Lua execution in CombatHUD. No causal
 link to the HildaSoftLight native crash has been established; this is not its fix.
 Stable 0.4.0 source `56631469ec8888f41bc82f0d5d02684aa44c0e9b`, tag and release

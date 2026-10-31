@@ -1,8 +1,9 @@
-# CombatHUD 0.4.1 — GameThread scheduler candidate, NOT ACCEPTED
+# CombatHUD 0.4.1 — GameThread scheduler, ACCEPTED 2026-10-31
 
 Prepared and installed 2026-10-30. Branch `fix/safe-game-thread-scheduler`.
-Stable remains accepted/released 0.4.0; no main/tag/release promotion is authorized
-before explicit game acceptance. This candidate reduces recurring async Lua work;
+The user accepted the supplied scenario and authorized main/stable promotion
+on2026-10-31, conditional on clean logs; log/hash review below passed.0.4.1 is
+the accepted stable version;0.4.0 remains immutable for rollback. This candidate reduces recurring async Lua work;
 it is not a proven HildaSoftLight crash fix or universal UE4SS crash protection.
 
 ## Change and readiness
@@ -60,7 +61,8 @@ numbered payload with different bytes. Proprietary evidence stays outside Git.
 The model describes inspected source semantics. Its sequential delivery does not
 prove real engine thread identity, actual cadence, native reentrancy/GC/shutdown
 safety or absence of crashes. New timer invocation and all-game-state rendering
-remain unverified until the user runs the installed candidate.
+now have bounded runtime evidence from the accepted scenario below. Exact cadence,
+all possible game states and universal native safety remain unverified.
 
 ## Verified installation and rollback
 
@@ -83,7 +85,7 @@ After gameplay, capture the accessible log and current installed hashes before
 another start overwrites the log, then reconcile this record with the user's
 visual observation. Loading, visual acceptance and stable publication are separate.
 
-## Required short gameplay scenario
+## Supplied gameplay scenario — user reports PASS 2026-10-31
 
 1. Start normally and load gameplay. HUD appears; full-HP peaceful state fades to
    20% after1.5s hold +1s fade. Verify the usual combat reveal and return to peace.
@@ -105,3 +107,38 @@ do not silently edit0.4.1 bytes. Stable release requires explicit user acceptanc
 Shared source/static facts were promoted to Asterigos-Research
 [`3f12d11`](https://github.com/NikichMods/Asterigos-Research/commit/3f12d11)
 under R-008. Candidate implementation, hashes and acceptance remain owned here.
+
+## Game acceptance and support-log audit — 2026-10-31
+
+User: «Проверил по сценарию, всё успешно ... Если с логом всё в порядке, то будем
+принимать эту версию. Делаем её мейн версией ... со всеми документами».
+The condition is met: installed/frozen/source hashes match the table; the current
+session identifies0.4.1 and contains no CombatHUD failure or global error,
+exception, fatal, LUA_ERR or Ref-was-not-function markers. No game process was
+present at review; files/process/settings/saves were not changed during review.
+
+Ignored snapshot `runtime-20261031-083134-UE4SS.log`,77538 bytes, SHA256
+`563120948c644fb6be1b0b2b80d4db6060268a42b2411d54ea865ff113614d33`.
+Log timestamps:0.4.1 loaded11:25:17.994;17 targets/pawn bound11:25:44.669;
+damage11:26:51.950 → vital fading11:26:58.016 → idle11:26:59.016;
+HUD released11:30:39.204. Event loop end is present.20 CombatHUD log lines,
+no recurring error spam. Native OnActionInputPressed hook is registered.
+This proves actual scheduled updates on the pinned host, not measured exact50ms
+cadence or universal crash freedom. Interact/modifier/menu visual acceptance is
+the user's scenario report; sparse logs do not independently record every action.
+
+The historical `candidate` startup marker is intentionally preserved in accepted
+Lua bytes. Runtime source identity remains7547dcbc7b0e913f7a92741ed99a022e2c00bf37.
+No reinstall/rebuild is needed.0.4.0 rollback remains verified outside loader.
+
+## Stable distribution package
+
+The original numbered candidate ZIP is preserved unchanged. Stable distribution
+uses separately named `CombatHUD-0.4.1-release.zip`, adding only full MPL-2.0 LICENSE
+and installation/source README to the exact accepted three runtime files.
+No host assets, UE4SS/UEHelpers or private evidence are included. This is packaging,
+not a rebuilt/modified0.4.1 payload.
+
+Stable ZIP: 14205 bytes, SHA256 `168cc54f7aa47a376e063bab23b9d6d8ef1873f30584d01cc7333714ec7b4ca7`.
+`CombatHUD-0.4.1-SHA256SUMS.txt` records ZIP and runtime hashes. Public publication
+and download verification are recorded below when completed.
