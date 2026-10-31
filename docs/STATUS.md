@@ -6,6 +6,12 @@
 payload и source `7547dcbc7b0e913f7a92741ed99a022e2c00bf37`.
 [Каноническая приёмка, хеши и публикация](CANDIDATE-0.4.1.md).
 
+[Release 0.4.1](https://github.com/NikichMods/CombatHUD/releases/tag/CombatHUD-v0.4.1)
+опубликован; ZIP и SHA256SUMS повторно скачаны без авторизации и проверены.
+[PR №3](https://github.com/NikichMods/CombatHUD/pull/3) слит в main как
+`2b662b7b74ab6d41d0939708949a7bd2a8a82ccd`; тег `CombatHUD-v0.4.1` указывает
+на этот merge. CI main — PASS; runtime-байты совпадают с принятым source.
+
 Один `LoopInGameThreadWithDelay(50, callback)` заменяет async producer и вторую
 диспетчеризацию; таймер отменяется по handle. Ошибки обновления, восстановления
 и отмены ограничены fail-safe. Policy/17 целей/input hook сохранены.

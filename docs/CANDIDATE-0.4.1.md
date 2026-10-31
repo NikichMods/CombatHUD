@@ -140,5 +140,28 @@ No host assets, UE4SS/UEHelpers or private evidence are included. This is packag
 not a rebuilt/modified0.4.1 payload.
 
 Stable ZIP: 14205 bytes, SHA256 `168cc54f7aa47a376e063bab23b9d6d8ef1873f30584d01cc7333714ec7b4ca7`.
-`CombatHUD-0.4.1-SHA256SUMS.txt` records ZIP and runtime hashes. Public publication
-and download verification are recorded below when completed.
+`CombatHUD-0.4.1-SHA256SUMS.txt` records ZIP and runtime hashes.
+
+## Stable promotion and verified public downloads — 2026-10-31
+
+[PR3](https://github.com/NikichMods/CombatHUD/pull/3) merged as
+`2b662b7b74ab6d41d0939708949a7bd2a8a82ccd`. Annotated `CombatHUD-v0.4.1`
+resolves to that integration commit. Exact runtime Lua/VERSION equal accepted
+source7547dcbc7b0e913f7a92741ed99a022e2c00bf37; no rebuild or reinstall occurred.
+Final branch/PR and main offline-tests checks completed successfully; local suites,
+runtime identity checks and affected documentation-link checks also passed.
+
+[GitHub Release0.4.1](https://github.com/NikichMods/CombatHUD/releases/tag/CombatHUD-v0.4.1),
+ID429814822, published2026-10-31 at08:36:03UTC, is public, not draft/prerelease.
+Unauthenticated repeat downloads matched the local package and checksum file
+byte-for-byte. ZIP integrity, all three accepted runtime hashes and full MPL
+LICENSE were verified after download.14205-byte ZIP hash is recorded above;
+366-byte SHA256SUMS file hash:
+`62805e9f8c4c0b25f6d80e2e39527d92499b6330120fdc29b80e27eadb4e0ab9`.
+Private verification manifest/downloads are under `.local/release-0.4.1/`.
+
+The shared bounded runtime finding was published in Asterigos-Research
+[`9bd67fd`](https://github.com/NikichMods/Asterigos-Research/commit/9bd67fd),
+R-008; mod-specific acceptance remains here. Previous tags/releases and rollback
+payloads are unchanged. This completes stable promotion without broadening the
+documented cadence, crystal, remapping/focus or native-crash safety claims.
