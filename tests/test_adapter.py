@@ -14,6 +14,7 @@ function print(message) logs[#logs + 1] = message end
 package.preload.policy = function() return assert(load(policySource))() end
 now, fighting, hp, maxHp, getterCalls = 0, false, 100, 100, 0
 skillHeld, inputMode, inputDevice = false, 0, 4
+crystalHeld, rejectCrystalGetter = false, false
 deviceGetterCalls = 0
 keysDown, keysEdge, keyMap = {}, {}, {
     ["K-Interact"] = "F", ["PC-Joystick-Interact"] = "Gamepad_FaceButton_Top" }
@@ -61,6 +62,11 @@ player = mock(hildaClass, "hilda")
 controller = mock(controllerClass, "controller")
 listener = mock(widget, "listener")
 controller.GetModifier_SpecialSkill = function() return skillHeld end
+controller.GetModifier_EnchanceItem = function(self)
+    assert(self == controller, "crystal getter called on foreign owner")
+    if rejectCrystalGetter then error("crystal getter unavailable") end
+    return crystalHeld
+end
 controller.GetNowInputControllerType = function(self)
     assert(self == controller, "input controller getter called on foreign owner")
     deviceGetterCalls = deviceGetterCalls + 1
@@ -201,7 +207,7 @@ function check(ordinary, vital)
         assert(nearly(child.alpha, special and vital or ordinary), child.label .. " opacity " .. child.alpha)
     end
     assert(nearly(quick.alpha, vital), "quick items")
-    assert(nearly(pad.alpha, ordinary), "pad crystals")
+    assert(nearly(pad.alpha, crystalExpected or ordinary), "pad crystals")
     assert(nearly(hud.HUDSkillUMG_BP.alpha, skillExpected or ordinary), "right skills")
     assert(nearly(hud.HUDActiveSkillUMG_BP.alpha, skillExpected or ordinary), "right active skills")
     assert(nearly(keyboard.alpha, keyboardExpected or 0), "keyboard group native baseline changed")
@@ -339,6 +345,40 @@ assert(not disabled)
 ''')
 
 print('PASS: 17 targets, finite injured hold, HP/combat, semantic Interact, skill hold/release, UI isolation, rebind, rollback and fail-safe.')
+
+runtime = LuaRuntime(unpack_returned_tuples=True)
+runtime.globals().policySource = (root / "policy.lua").read_text()
+runtime.execute(fixture)
+runtime.execute((root / "main.lua").read_text())
+runtime.execute('''
+tick(.05); tick(3); check(.2,.2)
+crystalHeld=true; crystalExpected=1; tick(4); check(.2,.2)
+tick(5.5); check(.2,.2)
+crystalExpected=.6; tick(6); check(.2,.2)
+crystalExpected=nil; tick(6.5); check(.2,.2)
+tick(7); check(.2,.2) -- continuous hold never retriggers
+crystalHeld=false; tick(7.1); check(.2,.2)
+crystalHeld=true; crystalExpected=1; tick(7.2); check(.2,.2)
+crystalHeld=false; crystalExpected=nil; tick(7.3); check(.2,.2) -- early close
+crystalHeld=true; crystalExpected=1; tick(8); check(.2,.2)
+inputDevice=3; crystalExpected=nil; tick(8.1); check(.2,.2)
+inputDevice=1; tick(8.2); check(.2,.2)
+inputDevice=4; tick(8.3); check(.2,.2) -- stale true on re-entry
+crystalHeld=false; tick(8.4); check(.2,.2)
+crystalHeld=true; crystalExpected=1; tick(8.5); check(.2,.2)
+inputMode=1; menu.visibility=2; crystalExpected=nil; tick(8.6); check(.2,.2)
+inputMode=0; menu.visibility=3; tick(8.7); check(.2,.2)
+crystalHeld=false; tick(8.8); check(.2,.2)
+crystalHeld=true; crystalExpected=1; tick(9); check(.2,.2)
+press("Gamepad_FaceButton_Top"); tick(9.1); check(1,1)
+releaseKey("Gamepad_FaceButton_Top")
+crystalHeld=false; crystalExpected=nil; tick(9.2); check(1,1)
+tick(12); check(.2,.2)
+rejectCrystalGetter=true; skillHeld=true; skillExpected=1; tick(13); check(.2,.2)
+rejectCrystalGetter=false; crystalHeld=false; tick(13.1); check(.2,.2)
+crystalHeld=true; tick(13.2); check(.2,.2) -- only crystal feature stays disabled
+''')
+print('PASS: crystal opening pulse, expiry, early close, reopening, input boundaries and isolated read failure.')
 
 
 def scheduler_case(setup, assertions):

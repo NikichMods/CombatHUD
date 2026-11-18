@@ -169,6 +169,27 @@ function M.stepContext(state, now, held, eligible, config)
     return interact, skill
 end
 
+function M.stepCrystalReveal(state, now, held, config)
+    if not finite(now) or type(held) ~= "boolean" or (state.lastTime and now < state.lastTime) then
+        state.armed, state.started, state.lastTime = false, nil, nil
+        return 0
+    end
+    state.lastTime = now
+    if not held then
+        state.armed, state.started = true, nil
+        return 0
+    end
+    if state.armed then
+        state.armed, state.started = false, now
+    end
+    if state.started then
+        local gain = smoothDown(now - state.started - config.exitDelay, config.fadeSeconds)
+        if gain == 0 then state.started = nil end
+        return gain
+    end
+    return 0
+end
+
 function M.overlay(base, gain)
     return base + (1 - base) * gain
 end
