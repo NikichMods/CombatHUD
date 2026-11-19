@@ -4,6 +4,7 @@ local Policy = require("policy")
 local config = { idleOpacity = 0.20, exitDelay = 1.5, injuredExitDelay = 6.0, fadeSeconds = 1.0 }
 local state = Policy.newHealth()
 local context = Policy.newContext()
+local crystalReveal, crystalReadFailed = {}, false
 local hud, global, ownerAddress
 local entries = {}
 local disabled, timerHandle = false, nil
@@ -76,6 +77,7 @@ local function release(reason)
     if not restore() then disabled = true end
     entries, ownerAddress, state, lastMode, lastDamageLog = {}, nil, Policy.newHealth(), nil, nil
     context = Policy.newContext()
+    crystalReveal = {}
     input.controller, input.keys, input.pre = nil, {}, {}
     input.lastDevice, input.lastMode, input.lastPress = nil, nil, nil
     if reason then log("HUD released: " .. reason) end
@@ -154,7 +156,7 @@ local function bind()
     log("Bound 17 independent HUD targets; keyboard crystals remain native-hidden until available")
 end
 
-local function apply(ordinary, vital, skill)
+local function apply(ordinary, vital, skill, crystal)
     -- Read and validate all managed values before any write. Native changes never
     -- become the basis for a forced overwrite in this tick.
     local writes = {}
@@ -174,6 +176,7 @@ local function apply(ordinary, vital, skill)
         local expectedPrevious = entry.last or entry.original
         assert(near(current, expectedPrevious), "native opacity writer conflict: " .. entry.label)
         local factor = entry.vital and vital or (entry.skill and skill or ordinary)
+        if entry.label == "items.HUDCrystalUMG_Pad_BP" then factor = crystal end
         local desired = entry.original * factor
         if not near(current, desired) then
             writes[#writes + 1] = { entry = entry, value = desired }
@@ -314,6 +317,10 @@ local function installInputHook()
     end
 end
 
+local function readCrystalModifier(controller)
+    return controller:GetModifier_EnchanceItem()
+end
+
 local function contextualInput()
     local controller = hud:GetOwningPlayer()
     if not derived(controller, "GenesisPlayerController") then
@@ -331,7 +338,13 @@ local function contextualInput()
     local mode = global:GetInputMode(true, false)
     local scene = mode == 0 and nativeScene()
     local device = controller:GetNowInputControllerType()
+    local padDevice = type(device) == "number" and device >= 2 and device <= 5
     if ownerChanged or device ~= input.lastDevice or mode ~= input.lastMode then
+        -- The opening input itself can switch keyboard to pad. Preserve a
+        -- sampled released state only across that transition in the same scene.
+        if ownerChanged or mode ~= input.lastMode or input.lastDevice ~= 1 or not padDevice then
+            crystalReveal = {}
+        end
         input.lastDevice, input.lastMode = device, mode
         input.pre = {}
         if scene and not input.edgeFailed then
@@ -348,7 +361,19 @@ local function contextualInput()
         return false, false
     end
     installInputHook()
-    return true, controller:GetModifier_SpecialSkill()
+    local skillHeld = controller:GetModifier_SpecialSkill()
+    local crystalHeld
+    -- EGenesisInputControllerType: DualShock4, DualSense, Xbox, Switch.
+    if not crystalReadFailed and (padDevice or device == 1) then
+        local ok, value = pcall(readCrystalModifier, controller)
+        if ok and type(value) == "boolean" then
+            crystalHeld = value
+        else
+            crystalReadFailed = true
+            log("Crystal selector modifier unavailable; normal HUD opacity remains active")
+        end
+    end
+    return true, skillHeld, crystalHeld, padDevice
 end
 
 local function update()
@@ -382,8 +407,8 @@ local function update()
     local now = UEHelpers.GetGameplayStatics():GetTimeSeconds(hud)
     local ordinary, vital, ordinaryMode, vitalMode, damage = Policy.stepHealth(state, now, battle, hp, maxHp, config)
     if ordinaryMode == "unknown" then error("invalid time, battle or HP getter value") end
-    local eligible, held = false, false
-    local inputOk, inputErr = pcall(function() eligible, held = contextualInput() end)
+    local eligible, held, crystalHeld, padDevice = false, false, nil, false
+    local inputOk, inputErr = pcall(function() eligible, held, crystalHeld, padDevice = contextualInput() end)
     if not inputOk then
         input.keys = {}
         Policy.cancelSkill(context)
@@ -391,8 +416,10 @@ local function update()
         input.edgeFailed = true -- preserve accepted automatic behavior
     end
     local generalGain, skillGain = Policy.stepContext(context, now, held, eligible, config)
+    local crystalGain = Policy.stepCrystalReveal(crystalReveal, now, crystalHeld, padDevice, config)
     apply(Policy.overlay(ordinary, generalGain), Policy.overlay(vital, generalGain),
-        Policy.overlay(ordinary, math.max(generalGain, skillGain)))
+        Policy.overlay(ordinary, math.max(generalGain, skillGain)),
+        Policy.overlay(ordinary, math.max(generalGain, crystalGain)))
     local mode = ordinaryMode .. "/" .. vitalMode
     local logDamage = damage and (lastDamageLog == nil or now - lastDamageLog >= 2 or now < lastDamageLog)
     if mode ~= lastMode or logDamage then
@@ -426,7 +453,7 @@ local function disable(reason, cleanup)
     end
 end
 
-log("Loaded CombatHUD 0.4.1 safe-game-thread candidate; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, nominal 50ms HP sampling")
+log("Loaded CombatHUD 0.5.0; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, 1.5s crystal hold, nominal 50ms GameThread sampling")
 if type(LoopInGameThreadWithDelay) ~= "function" or type(CancelDelayedAction) ~= "function" then
     disable("Scheduler unavailable: GameThread delayed-action API required; HUD unchanged", false)
 else

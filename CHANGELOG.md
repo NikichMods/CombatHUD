@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 — 2026-11-19
+
+- Opening the gamepad crystal selector brightens its panel for 1.5 seconds, then fades over 1 second. Closing early restores normal brightness immediately.
+- The first opening after using the keyboard also triggers the reveal.
+
 ## 0.4.1 — 2026-10-31
 
 - Replace the async HUD polling producer with one repeating GameThread timer and explicit handle cancellation.
