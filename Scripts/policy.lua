@@ -169,14 +169,14 @@ function M.stepContext(state, now, held, eligible, config)
     return interact, skill
 end
 
-function M.stepCrystalReveal(state, now, held, config)
+function M.stepCrystalReveal(state, now, held, onPad, config)
     if not finite(now) or type(held) ~= "boolean" or (state.lastTime and now < state.lastTime) then
         state.armed, state.started, state.lastTime = false, nil, nil
         return 0
     end
     state.lastTime = now
-    if not held then
-        state.armed, state.started = true, nil
+    if not held or not onPad then
+        state.armed, state.started = not held, nil
         return 0
     end
     if state.armed then

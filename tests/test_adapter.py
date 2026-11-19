@@ -374,6 +374,10 @@ press("Gamepad_FaceButton_Top"); tick(9.1); check(1,1)
 releaseKey("Gamepad_FaceButton_Top")
 crystalHeld=false; crystalExpected=nil; tick(9.2); check(1,1)
 tick(12); check(.2,.2)
+inputDevice=1; tick(12.1); check(.2,.2) -- establish release on keyboard
+inputDevice=4; crystalHeld=true; crystalExpected=1; tick(12.2); check(.2,.2)
+inputDevice=1; crystalExpected=nil; tick(12.3); check(.2,.2) -- stale true must clear
+inputDevice=4; tick(12.4); check(.2,.2)
 rejectCrystalGetter=true; skillHeld=true; skillExpected=1; tick(13); check(.2,.2)
 rejectCrystalGetter=false; crystalHeld=false; tick(13.1); check(.2,.2)
 crystalHeld=true; tick(13.2); check(.2,.2) -- only crystal feature stays disabled

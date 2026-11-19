@@ -338,10 +338,15 @@ local function contextualInput()
     local mode = global:GetInputMode(true, false)
     local scene = mode == 0 and nativeScene()
     local device = controller:GetNowInputControllerType()
+    local padDevice = type(device) == "number" and device >= 2 and device <= 5
     if ownerChanged or device ~= input.lastDevice or mode ~= input.lastMode then
+        -- The opening input itself can switch keyboard to pad. Preserve a
+        -- sampled released state only across that transition in the same scene.
+        if ownerChanged or mode ~= input.lastMode or input.lastDevice ~= 1 or not padDevice then
+            crystalReveal = {}
+        end
         input.lastDevice, input.lastMode = device, mode
         input.pre = {}
-        crystalReveal = {}
         if scene and not input.edgeFailed then
             local ok, err = pcall(readBindings)
             if not ok then
@@ -359,7 +364,7 @@ local function contextualInput()
     local skillHeld = controller:GetModifier_SpecialSkill()
     local crystalHeld
     -- EGenesisInputControllerType: DualShock4, DualSense, Xbox, Switch.
-    if not crystalReadFailed and type(device) == "number" and device >= 2 and device <= 5 then
+    if not crystalReadFailed and (padDevice or device == 1) then
         local ok, value = pcall(readCrystalModifier, controller)
         if ok and type(value) == "boolean" then
             crystalHeld = value
@@ -368,7 +373,7 @@ local function contextualInput()
             log("Crystal selector modifier unavailable; normal HUD opacity remains active")
         end
     end
-    return true, skillHeld, crystalHeld
+    return true, skillHeld, crystalHeld, padDevice
 end
 
 local function update()
@@ -402,8 +407,8 @@ local function update()
     local now = UEHelpers.GetGameplayStatics():GetTimeSeconds(hud)
     local ordinary, vital, ordinaryMode, vitalMode, damage = Policy.stepHealth(state, now, battle, hp, maxHp, config)
     if ordinaryMode == "unknown" then error("invalid time, battle or HP getter value") end
-    local eligible, held, crystalHeld = false, false, nil
-    local inputOk, inputErr = pcall(function() eligible, held, crystalHeld = contextualInput() end)
+    local eligible, held, crystalHeld, padDevice = false, false, nil, false
+    local inputOk, inputErr = pcall(function() eligible, held, crystalHeld, padDevice = contextualInput() end)
     if not inputOk then
         input.keys = {}
         Policy.cancelSkill(context)
@@ -411,7 +416,7 @@ local function update()
         input.edgeFailed = true -- preserve accepted automatic behavior
     end
     local generalGain, skillGain = Policy.stepContext(context, now, held, eligible, config)
-    local crystalGain = Policy.stepCrystalReveal(crystalReveal, now, crystalHeld, config)
+    local crystalGain = Policy.stepCrystalReveal(crystalReveal, now, crystalHeld, padDevice, config)
     apply(Policy.overlay(ordinary, generalGain), Policy.overlay(vital, generalGain),
         Policy.overlay(ordinary, math.max(generalGain, skillGain)),
         Policy.overlay(ordinary, math.max(generalGain, crystalGain)))
@@ -448,7 +453,7 @@ local function disable(reason, cleanup)
     end
 end
 
-log("Loaded CombatHUD 0.4.1 safe-game-thread candidate; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, nominal 50ms HP sampling")
+log("Loaded CombatHUD 0.5.0; 0.20 idle, 1.5s normal/6.0s injured hold, 1.0s fade, 1.5s crystal hold, nominal 50ms GameThread sampling")
 if type(LoopInGameThreadWithDelay) ~= "function" or type(CancelDelayedAction) ~= "function" then
     disable("Scheduler unavailable: GameThread delayed-action API required; HUD unchanged", false)
 else
